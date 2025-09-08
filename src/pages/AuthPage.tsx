@@ -10,7 +10,7 @@ import { Mic, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { authApi, type LoginRequest, type SignupRequest } from "@/lib/api";
+import { authApi, type LoginRequest, type SignupRequest, type SignupResponse } from "@/lib/api";
 
 
 const decodeJwtCredential = (credential: string) => {
@@ -55,6 +55,7 @@ const AuthPage = () => {
     confirmPassword: "",
     agreeToTerms: false
   });
+  const [activeTab, setActiveTab] = useState(prefilledEmail ? "signup" : "login");
   
   useEffect(() => {
     if (error) {
@@ -169,9 +170,19 @@ const AuthPage = () => {
         confirmPassword: signupData.confirmPassword
       };
       const data = await authApi.signup(userData);
-      setUser(data.user, data.token);
-      toast.success('Account created successfully!');
-      navigate("/dashboard", { replace: true });
+      toast.success('Account created successfully! Please sign in to continue.');
+      // Clear the signup form
+      setSignupData({
+        firstName: "",
+        lastName: "",
+        email: signupData.email, // Keep the email for convenience
+        password: "",
+        confirmPassword: "",
+        agreeToTerms: false
+      });
+      // Switch to sign-in tab and populate email
+      setLoginData(prev => ({ ...prev, email: signupData.email }));
+      setActiveTab("login");
     } catch (error: any) {
       console.error('Signup error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Signup failed. Please try again.';
@@ -205,7 +216,7 @@ const AuthPage = () => {
         </div>
 
         <Card className="shadow-glow bg-white/95 backdrop-blur">
-          <Tabs defaultValue={prefilledEmail ? "signup" : "login"} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>

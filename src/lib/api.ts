@@ -65,6 +65,15 @@ export interface AuthResponse {
   };
 }
 
+export interface SignupResponse {
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
 // Authentication API functions
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -72,7 +81,7 @@ export const authApi = {
     return response.data.data; // Extract data from the nested structure
   },
 
-  signup: async (userData: SignupRequest): Promise<AuthResponse> => {
+  signup: async (userData: SignupRequest): Promise<SignupResponse> => {
     const response = await apiClient.post('auth/signup', userData);
     return response.data.data; // Extract data from the nested structure
   },
