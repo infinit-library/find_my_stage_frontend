@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { AIInput } from "@/components/ui/ai-input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { TOP_INDUSTRIES, TOP_TOPICS, mapToTopOrOther } from "@/lib/taxonomy";
+import { aiSuggestionService } from "@/lib/ai-suggestions";
 
 const SearchPage = () => {
     const navigate = useNavigate();
@@ -41,32 +42,28 @@ const SearchPage = () => {
                                     <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Speaking Topic</Label>
-                                    <Select value={topic} onValueChange={setTopic}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Choose a topic" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TOP_TOPICS.map((t) => (
-                                                <SelectItem key={t} value={t}>{t}</SelectItem>
-                                            ))}
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="topic">Speaking Topic</Label>
+                                    <AIInput
+                                        id="topic"
+                                        value={topic}
+                                        onChange={(e) => setTopic(e.target.value)}
+                                        placeholder="Type your speaking topic..."
+                                        suggestions={TOP_TOPICS}
+                                        generateAISuggestions={aiSuggestionService.generateTopicSuggestions.bind(aiSuggestionService)}
+                                        onSuggestionSelect={setTopic}
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Industry</Label>
-                                    <Select value={industry} onValueChange={setIndustry}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Choose an industry" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {TOP_INDUSTRIES.map((i) => (
-                                                <SelectItem key={i} value={i}>{i}</SelectItem>
-                                            ))}
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="industry">Industry</Label>
+                                    <AIInput
+                                        id="industry"
+                                        value={industry}
+                                        onChange={(e) => setIndustry(e.target.value)}
+                                        placeholder="Type your industry..."
+                                        suggestions={TOP_INDUSTRIES}
+                                        generateAISuggestions={aiSuggestionService.generateIndustrySuggestions.bind(aiSuggestionService)}
+                                        onSuggestionSelect={setIndustry}
+                                    />
                                 </div>
                             </div>
                             <div className="pt-2">
