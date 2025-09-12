@@ -80,6 +80,87 @@ export class AISuggestionService {
     return uniqueSuggestions.slice(0, 5); // Limit to 5 suggestions
   }
 
+  // Generate topic suggestions based on industry
+  async generateTopicSuggestionsFromIndustry(industry: string): Promise<string[]> {
+    await this.delay(500); // Simulate API call delay
+    
+    const normalizedIndustry = industry.toLowerCase().trim();
+    
+    // If industry is too short, return empty
+    if (normalizedIndustry.length < 2) {
+      return [];
+    }
+
+    // Generate topic suggestions based on industry
+    const industryTopics: { [key: string]: string[] } = {
+      'technology': [
+        'Artificial Intelligence', 'Machine Learning', 'Cloud Computing', 'Cybersecurity',
+        'Software Development', 'DevOps', 'Data Science', 'Blockchain', 'IoT', 'Quantum Computing'
+      ],
+      'healthcare': [
+        'Digital Health', 'Medical Technology', 'Healthcare Innovation', 'Telemedicine',
+        'Health Informatics', 'Medical Devices', 'Biotechnology', 'Pharmaceuticals', 'Public Health'
+      ],
+      'finance': [
+        'Fintech', 'Digital Banking', 'Cryptocurrency', 'Investment Strategy',
+        'Financial Planning', 'Risk Management', 'Corporate Finance', 'Wealth Management'
+      ],
+      'education': [
+        'EdTech', 'Online Learning', 'Educational Technology', 'Learning Analytics',
+        'Digital Literacy', 'STEM Education', 'E-Learning', 'Training & Development'
+      ],
+      'retail': [
+        'E-Commerce', 'Digital Marketing', 'Customer Experience', 'Supply Chain',
+        'Retail Technology', 'Omnichannel', 'Consumer Behavior', 'Brand Strategy'
+      ],
+      'manufacturing': [
+        'Industry 4.0', 'Smart Manufacturing', 'Automation', 'Quality Management',
+        'Supply Chain Optimization', 'Lean Manufacturing', 'Industrial IoT', 'Process Improvement'
+      ],
+      'energy': [
+        'Renewable Energy', 'Clean Technology', 'Energy Efficiency', 'Smart Grid',
+        'Solar Technology', 'Wind Energy', 'Energy Storage', 'Sustainability'
+      ],
+      'media': [
+        'Digital Media', 'Content Strategy', 'Social Media', 'Video Production',
+        'Digital Marketing', 'Brand Storytelling', 'Content Creation', 'Media Analytics'
+      ],
+      'transportation': [
+        'Logistics', 'Supply Chain', 'Transportation Technology', 'Fleet Management',
+        'Last Mile Delivery', 'Autonomous Vehicles', 'Smart Transportation', 'Freight Optimization'
+      ],
+      'real estate': [
+        'PropTech', 'Real Estate Technology', 'Smart Buildings', 'Property Management',
+        'Real Estate Investment', 'Commercial Real Estate', 'Residential Development', 'Urban Planning'
+      ]
+    };
+
+    // Find matching industry and return topics
+    for (const [key, topics] of Object.entries(industryTopics)) {
+      if (normalizedIndustry.includes(key) || key.includes(normalizedIndustry)) {
+        return topics.slice(0, 8); // Return up to 8 relevant topics
+      }
+    }
+
+    // If no specific match, generate general suggestions based on common patterns
+    const generalTopics: string[] = [];
+    
+    if (normalizedIndustry.includes('tech') || normalizedIndustry.includes('software') || normalizedIndustry.includes('digital')) {
+      generalTopics.push('Digital Transformation', 'Technology Innovation', 'Software Development', 'Data Analytics');
+    }
+    if (normalizedIndustry.includes('business') || normalizedIndustry.includes('corporate') || normalizedIndustry.includes('enterprise')) {
+      generalTopics.push('Business Strategy', 'Leadership', 'Change Management', 'Process Improvement');
+    }
+    if (normalizedIndustry.includes('marketing') || normalizedIndustry.includes('sales') || normalizedIndustry.includes('customer')) {
+      generalTopics.push('Customer Experience', 'Digital Marketing', 'Sales Strategy', 'Brand Management');
+    }
+    if (normalizedIndustry.includes('data') || normalizedIndustry.includes('analytics') || normalizedIndustry.includes('intelligence')) {
+      generalTopics.push('Data Science', 'Business Intelligence', 'Machine Learning', 'Predictive Analytics');
+    }
+
+    return generalTopics.length > 0 ? generalTopics.slice(0, 8) : [];
+  }
+
   // Generate industry suggestions based on input
   async generateIndustrySuggestions(input: string): Promise<string[]> {
     await this.delay(500); // Simulate API call delay

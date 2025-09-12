@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SearchLoading } from "@/components/ui/search-loading";
 import type { EventResult } from "@/lib/search";
-import { mockSearch } from "@/lib/search";
+import { ticketmasterSearch } from "@/lib/search";
 import { isSubscribed } from "@/lib/subscription";
 
 type LocationState = {
-    name: string
-    email: string
     topic: string
     industry: string
 }
@@ -23,19 +22,21 @@ const ResultsPage = () => {
     const [subscribed, setSubscribed] = useState<boolean>(isSubscribed());
 
     useEffect(() => {
-        if (!params.topic || !params.industry || !params.email || !params.name) {
+        if (!params.topic || !params.industry) {
             navigate("/search");
             return;
         }
         setLoading(true);
         const payload = {
-            name: params.name!,
-            email: params.email!,
+            name: "User", // Default name since we removed the field
+            email: "user@example.com", // Default email since we removed the field
             topic: params.topic!,
             industry: params.industry!,
         };
         (async () => {
-            const { top20, more100 } = await mockSearch(payload)
+            console.log('🚀 Starting search with payload:', payload);
+            const { top20, more100 } = await ticketmasterSearch(payload)
+            console.log('📋 Search results:', { top20Count: top20.length, more100Count: more100.length });
             setTop20(top20)
             setMore100(more100)
             setSubscribed(isSubscribed())
@@ -46,9 +47,14 @@ const ResultsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-muted-foreground">Searching opportunities…</p>
-            </div>
+            <SearchLoading 
+                duration={5000}
+                message="Searching opportunities..."
+                onComplete={() => {
+                    // This will be called when the loading animation completes
+                    // The actual search results will be handled by the useEffect
+                }}
+            />
         );
     }
 
@@ -103,7 +109,7 @@ const ResultsPage = () => {
                                 <div className="space-y-3 max-w-md">
                                     <h3 className="text-xl font-semibold">For 100+ more opportunities, subscribe for only $97/mo</h3>
                                     <p className="text-muted-foreground">Unlock full access instantly and keep access for 30 days per billing period.</p>
-                                    <Button variant="cta" size="lg" onClick={() => navigate("/subscribe", { state: params })}>Subscribe</Button>
+                                    <Button variant="cta" size="lg" onClick={() => navigate("/subscribe", { state: { topic: params.topic, industry: params.industry } })}>Subscribe</Button>
                                 </div>
                             </div>
                         )}

@@ -112,6 +112,38 @@ export const searchApi = {
   },
 };
 
+// Ticketmaster API functions
+export const ticketmasterApi = {
+  searchEvents: async (params: {
+    q: string;
+    city?: string;
+    country?: string;
+    size?: number;
+    num?: number;
+    page?: number;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      events: any[];
+      total_results: number;
+      total_pages: number;
+      current_page: number;
+      page_size: number;
+      query: string;
+      location: string;
+      count: number;
+      requests_made: number;
+      events_fetched: number;
+      max_requested: number;
+      source: string;
+    };
+  }> => {
+    const response = await apiClient.get('events/ticketmaster', { params });
+    return response.data;
+  },
+};
+
 // Payment API functions
 export const paymentApi = {
   createCheckout: async (email: string): Promise<{ url: string; id?: string }> => {

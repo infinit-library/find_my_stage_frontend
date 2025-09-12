@@ -58,7 +58,7 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
       setInputValue(newValue);
       onChange?.(e);
 
-      if (newValue.length > 2 && generateAISuggestions) {
+      if (String(newValue).length > 2 && generateAISuggestions) {
         setIsGenerating(true);
         try {
           const aiSuggestions = await generateAISuggestions(newValue);
@@ -69,7 +69,7 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
         } finally {
           setIsGenerating(false);
         }
-      } else if (newValue.length > 0) {
+      } else if (String(newValue).length > 0) {
         setShowSuggestions(true);
       } else {
         setShowSuggestions(false);
@@ -126,7 +126,7 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
             
             {uniqueSuggestions
               .filter(suggestion => 
-                suggestion.toLowerCase().includes(inputValue.toLowerCase())
+                suggestion.toLowerCase().includes(String(inputValue).toLowerCase())
               )
               .slice(0, 8)
               .map((suggestion, index) => (
