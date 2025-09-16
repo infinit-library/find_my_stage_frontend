@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchLoading } from "@/components/ui/search-loading";
-import { Calendar, Building, User, ExternalLink } from "lucide-react";
+import { Calendar, Building, User, ExternalLink, ArrowLeft } from "lucide-react";
 import type { EventResult } from "@/lib/search";
 import { ticketmasterSearch } from "@/lib/search";
 import { isSubscribed } from "@/lib/subscription";
@@ -75,12 +75,22 @@ const ResultsPage = () => {
     return (
         <div className="min-h-screen bg-background">
             <div className="max-w-7xl mx-auto p-6 space-y-8">
+                <div className="flex items-center justify-between">
+                    <Button 
+                        variant="outline" 
+                        onClick={() => navigate("/search")}
+                        className="flex items-center gap-2"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Search
+                    </Button>
+                </div>
+                
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold">Verified Opportunities</h1>
                     <p className="text-muted-foreground">Top 20 results include a verified speaker application link. Use the APPLY link on each card.</p>
                 </div>
-
-
+							
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {top20.map((ev) => (
                         <Card key={ev.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
