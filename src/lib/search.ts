@@ -15,6 +15,10 @@ export type EventResult = {
     contact?: string
     organizer?: string
     verifiedApplyLink: boolean
+    description?: string
+    date?: string
+    location?: string
+    venue?: string
 }
 
 // Convert Ticketmaster event to EventResult format
@@ -27,6 +31,10 @@ function convertTicketmasterEvent(event: any, index: number): EventResult {
         contact: event.venue?.name ? `Venue: ${event.venue.name}` : undefined,
         organizer: event.organizer || event._embedded?.attractions?.[0]?.name || 'Unknown Organizer',
         verifiedApplyLink: false, // Ticketmaster events are not verified application links
+        description: event.description || event.info || undefined,
+        date: event.dates?.start?.dateTime || event.dates?.start?.localDate || undefined,
+        location: event._embedded?.venues?.[0]?.city?.name || event._embedded?.venues?.[0]?.name || undefined,
+        venue: event._embedded?.venues?.[0]?.name || undefined,
     };
 }
 
@@ -88,6 +96,10 @@ export async function mockSearch(input: SearchInput): Promise<{ top20: EventResu
         contact: `mailto:contact${i}@example.org`,
         organizer: `Org ${((seed + i) % 50) + 1}`,
         verifiedApplyLink: verified,
+        description: `Join us for an exciting ${input.topic} ${verified ? 'Summit' : 'Conference'} featuring industry leaders, networking opportunities, and cutting-edge insights. This event brings together professionals from ${input.industry} to share knowledge and build connections.`,
+        date: new Date(Date.now() + (i + 1) * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        location: `City ${((seed + i) % 20) + 1}`,
+        venue: `Convention Center ${((seed + i) % 10) + 1}`,
     })
 
     const top20 = Array.from({ length: 20 }, (_, i) => make(i, true))

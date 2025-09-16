@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchLoading } from "@/components/ui/search-loading";
+import { Calendar, Building, User, ExternalLink } from "lucide-react";
 import type { EventResult } from "@/lib/search";
 import { ticketmasterSearch } from "@/lib/search";
 import { isSubscribed } from "@/lib/subscription";
+import { EventDetailsModal } from "@/components/EventDetailsModal";
 
 type LocationState = {
     topic: string
@@ -20,6 +22,8 @@ const ResultsPage = () => {
     const [more100, setMore100] = useState<EventResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [subscribed, setSubscribed] = useState<boolean>(isSubscribed());
+    const [selectedEvent, setSelectedEvent] = useState<EventResult | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (!params.topic || !params.industry) {
@@ -45,6 +49,16 @@ const ResultsPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const handleViewEvent = (event: EventResult) => {
+        setSelectedEvent(event);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setSelectedEvent(null);
+    };
+
     if (loading) {
         return (
             <SearchLoading 
@@ -67,23 +81,65 @@ const ResultsPage = () => {
                 </div>
 
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {top20.map((ev) => (
-                        <Card key={ev.id} className="shadow-card">
-                            <CardHeader>
-                                <CardTitle className="text-lg">{ev.name}</CardTitle>
-                                <CardDescription className="truncate">{ev.organizer}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="text-sm">
-                                    <a href={ev.mainUrl} className="text-primary hover:underline" target="_blank" rel="noreferrer">{ev.mainUrl}</a>
+                        <Card key={ev.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                            {/* Event Image */}
+                            <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden">
+                                <div className="absolute inset-0 bg-black/20"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="text-center text-white">
+                                        <div className="w-16 h-16 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center">
+                                            <Calendar className="w-8 h-8" />
+                                        </div>
+                                        <p className="text-sm font-medium">Event</p>
+                                    </div>
                                 </div>
-                                <div className="text-sm">
-                                    <a href={ev.applicationUrl} className="text-primary hover:underline" target="_blank" rel="noreferrer">Apply to Speak</a>
+                            </div>
+                            
+                            <CardContent className="p-4 space-y-3">
+                                {/* Event Details */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Calendar className="w-4 h-4" />
+                                        <span>{new Date().toLocaleDateString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        })}</span>
+                                    </div>
+                                    
+                                    <h3 className="font-bold text-lg leading-tight">{ev.name}</h3>
+                                    
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Building className="w-4 h-4" />
+                                        <span>{ev.organizer || 'Unknown'}</span>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <User className="w-4 h-4" />
+                                        <span>{ev.contact || 'Venue: TBD'}</span>
+                                    </div>
                                 </div>
-                                {ev.contact && (
-                                    <div className="text-sm text-muted-foreground truncate">{ev.contact}</div>
-                                )}
+                                
+                                {/* Action Buttons */}
+                                <div className="space-y-2 pt-2">
+                                    <Button 
+                                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                                        onClick={() => window.open(ev.applicationUrl || ev.mainUrl, '_blank')}
+                                    >
+                                        Apply to Speak
+                                    </Button>
+                                    
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full"
+                                        onClick={() => handleViewEvent(ev)}
+                                    >
+                                        <ExternalLink className="w-4 h-4 mr-2" />
+                                        View Event
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     ))}
@@ -116,6 +172,13 @@ const ResultsPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Event Details Modal */}
+            <EventDetailsModal
+                event={selectedEvent}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+            />
         </div>
     );
 };
