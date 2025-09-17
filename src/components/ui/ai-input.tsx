@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Check, X, Loader2 } from "lucide-react";
-import { AISuggestionService } from "@/lib/ai-suggestions";
+import { AISuggestionService, aiSuggestionService } from "@/lib/ai-suggestions";
 
 interface AIInputProps extends React.ComponentProps<"input"> {
   suggestions?: string[];
@@ -12,8 +12,10 @@ interface AIInputProps extends React.ComponentProps<"input"> {
   placeholder?: string;
   className?: string;
   onValidationChange?: (status: 'loading' | 'match' | 'different' | null) => void;
-  isTopicField?: boolean; // Special flag for topic field to be more lenient
-  industryContext?: string; // Industry context for topic validation
+  isTopicField?: boolean;
+  industryContext?: string;
+  showIndustryHints?: boolean;
+  convertSentenceToTopic?: boolean;
 }
 
 const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
@@ -28,12 +30,16 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
     onValidationChange,
     isTopicField = false,
     industryContext,
+    showIndustryHints = false,
+    convertSentenceToTopic = false,
     ...props 
   }, ref) => {
     const [inputValue, setInputValue] = useState(value || "");
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+    const [industryHints, setIndustryHints] = useState<string[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isConvertingSentence, setIsConvertingSentence] = useState(false);
     const [validationStatus, setValidationStatus] = useState<'loading' | 'match' | 'different' | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const suggestionRef = useRef<HTMLDivElement>(null);
@@ -129,6 +135,21 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
       }
     }, [value]);
 
+    // Load industry hints when industry context changes
+    useEffect(() => {
+      if (showIndustryHints && industryContext && industryContext.length > 2) {
+        const loadIndustryHints = async () => {
+          try {
+            const hints = await aiSuggestionService.getIndustryTopicHints(industryContext);
+            setIndustryHints(hints);
+          } catch (error) {
+            console.error('Error loading industry hints:', error);
+          }
+        };
+        loadIndustryHints();
+      }
+    }, [industryContext, showIndustryHints]);
+
     // Notify parent component of validation status changes
     useEffect(() => {
       onValidationChange?.(validationStatus);
@@ -154,6 +175,9 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
       const newValue = e.target.value;
       setInputValue(newValue);
       onChange?.(e);
+
+      // Check if input looks like a sentence (multiple words, contains spaces)
+      const isSentence = newValue.includes(' ') && newValue.split(' ').length > 2;
 
       if (String(newValue).length > 2 && generateAISuggestions) {
         setIsGenerating(true);
@@ -181,6 +205,25 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
         setShowSuggestions(false);
         setAiSuggestions([]);
         setValidationStatus(null);
+      }
+
+      // Convert sentence to topics if enabled and input looks like a sentence
+      if (convertSentenceToTopic && isSentence && newValue.length > 10) {
+        setIsConvertingSentence(true);
+        try {
+          const topics = await aiSuggestionService.convertSentenceToTopic(newValue, industryContext);
+          if (topics.length > 0) {
+            setAiSuggestions(prev => {
+              const combined = [...prev, ...topics];
+              return Array.from(new Set(combined)); // Remove duplicates
+            });
+            setShowSuggestions(true);
+          }
+        } catch (error) {
+          console.error('Error converting sentence to topics:', error);
+        } finally {
+          setIsConvertingSentence(false);
+        }
       }
     };
 
@@ -243,7 +286,7 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
           )}
         </div>
         
-        {showSuggestions && uniqueSuggestions.length > 0 && (
+        {(showSuggestions && uniqueSuggestions.length > 0) || (showIndustryHints && industryHints.length > 0 && !inputValue) && (
           <div
             ref={suggestionRef}
             className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
@@ -253,6 +296,32 @@ const AIInput = React.forwardRef<HTMLInputElement, AIInputProps>(
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                 Generating AI suggestions...
               </div>
+            )}
+            
+            {isConvertingSentence && (
+              <div className="px-3 py-2 text-sm text-gray-500 flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
+                Converting sentence to topics...
+              </div>
+            )}
+
+            {/* Show industry hints when no input and industry context is available */}
+            {showIndustryHints && industryHints.length > 0 && !inputValue && (
+              <>
+                <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50 border-b">
+                  Popular topics for {industryContext}:
+                </div>
+                {industryHints.slice(0, 6).map((hint, index) => (
+                  <div
+                    key={`hint-${index}`}
+                    className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleSuggestionClick(hint)}
+                  >
+                    <span className="text-blue-600 font-medium">{hint}</span>
+                    <span className="text-xs text-gray-400 ml-2">(Industry hint)</span>
+                  </div>
+                ))}
+              </>
             )}
             
             {uniqueSuggestions

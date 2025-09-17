@@ -1,122 +1,149 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { AIInput } from "@/components/ui/ai-input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { TOP_INDUSTRIES, TOP_TOPICS, mapToTopOrOther } from "@/lib/taxonomy";
-import { aiSuggestionService } from "@/lib/ai-suggestions";
+import IndustrySelector from "@/components/ui/industry-selector";
+import TopicAIInput from "@/components/ui/topic-ai-input";
+// Removed old taxonomy imports - now using actual values
 import { toast } from "sonner";
+import { Brain, Search, CheckCircle, AlertCircle } from "lucide-react";
 
 const SearchPage = () => {
-    const navigate = useNavigate();
-    const [topic, setTopic] = useState("");
-    const [industry, setIndustry] = useState("");
-    const [industryValidation, setIndustryValidation] = useState<'loading' | 'match' | 'different' | null>(null);
-    const [topicValidation, setTopicValidation] = useState<'loading' | 'match' | 'different' | null>(null);
-    const [isSearching, setIsSearching] = useState(false);
+  const navigate = useNavigate();
+  const [topic, setTopic] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [topicValidation, setTopicValidation] = useState<'loading' | 'match' | 'different' | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-    const onSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        // Check if either field shows a red X (different validation status)
-        if (industryValidation === 'different' || topicValidation === 'different') {
-            toast.error("Please ensure your input matches the AI suggestions before proceeding.");
-            return;
-        }
-        
-        // Check if either field is still loading
-        if (industryValidation === 'loading' || topicValidation === 'loading') {
-            toast.error("Please wait for AI suggestions to finish loading.");
-            return;
-        }
-        
-        setIsSearching(true);
-        
-        // Add a small delay to show the loading state
-        setTimeout(() => {
-            const mappedTopic = mapToTopOrOther(topic, TOP_TOPICS);
-            const mappedIndustry = mapToTopOrOther(industry, TOP_INDUSTRIES);
-            navigate("/results", { state: { topic: mappedTopic, industry: mappedIndustry } });
-        }, 500);
-    };
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-    return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-6">
-            <div className="w-full max-w-2xl">
-                <Card className="shadow-card">
-                    <form onSubmit={onSubmit}>
-                        <CardHeader className="text-center">
-                            <CardTitle>Find Stages That Fit You</CardTitle>
-                            <CardDescription>Enter the basics. We'll surface verified opportunities.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                
-                            <div className="space-y-2">
-                                    <Label htmlFor="industry">Industry</Label>
-                                    <AIInput
-                                        id="industry"
-                                        value={industry}
-                                        onChange={(e) => setIndustry(e.target.value)}
-                                        placeholder="Type your industry..."
-                                        suggestions={TOP_INDUSTRIES}
-                                        generateAISuggestions={aiSuggestionService.generateIndustrySuggestions.bind(aiSuggestionService)}
-                                        onSuggestionSelect={setIndustry}
-                                        onValidationChange={setIndustryValidation}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="topic">Speaking Topic</Label>
-                                    <AIInput
-                                        id="topic"
-                                        value={topic}
-                                        onChange={(e) => setTopic(e.target.value)}
-                                        placeholder="Type your speaking topic..."
-                                        suggestions={TOP_TOPICS}
-                                        generateAISuggestions={(input: string) => aiSuggestionService.generateTopicSuggestions(input, industry)}
-                                        onSuggestionSelect={setTopic}
-                                        onValidationChange={setTopicValidation}
-                                        isTopicField={true}
-                                        industryContext={industry}
-                                    />
-                                </div>
-                            </div>
-                            <div className="pt-2 space-y-2">
-                                <Button 
-                                    type="submit" 
-                                    variant="hero" 
-                                    className="w-full"
-                                    disabled={industryValidation === 'different' || topicValidation === 'different' || 
-                                             industryValidation === 'loading' || topicValidation === 'loading' || isSearching}
-                                >
-                                    {isSearching ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            Searching...
-                                        </div>
-                                    ) : (
-                                        'Search'
-                                    )}
-                                </Button>
-                                {(industryValidation === 'different' || topicValidation === 'different') && (
-                                    <p className="text-sm text-red-600 text-center">
-                                        Please ensure your input matches the AI suggestions (green checkmark) before searching.
-                                    </p>
-                                )}
-                                {(industryValidation === 'loading' || topicValidation === 'loading') && (
-                                    <p className="text-sm text-blue-600 text-center">
-                                        Please wait for AI suggestions to finish loading...
-                                    </p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </form>
-                </Card>
-            </div>
-        </div>
-    );
+    // Validate required fields
+    if (!industry) {
+      toast.error("Please select an industry.");
+      return;
+    }
+
+    if (!topic) {
+      toast.error("Please enter a speaking topic.");
+      return;
+    }
+
+    if (topicValidation === 'different') {
+      toast.error("Please select a topic hint from the AI suggestions before proceeding.");
+      return;
+    }
+
+    // Check if topic is still loading
+    if (topicValidation === 'loading') {
+      toast.error("Please wait for AI suggestions to finish loading.");
+      return;
+    }
+
+    setIsSearching(true);
+
+    // Add a small delay to show the loading state
+    setTimeout(() => {
+      // Pass the actual values instead of mapping to "Other"
+      navigate("/results", { state: { topic: topic, industry: industry } });
+    }, 500);
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl">
+        <Card className="shadow-card">
+          <form onSubmit={onSubmit}>
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2">
+                <Brain className="h-6 w-6 text-purple-600" />
+                Find Stages That Fit You
+              </CardTitle>
+              <CardDescription>
+                Select your industry and let AI help you find the perfect speaking topic.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Industry Selection */}
+              <IndustrySelector
+                value={industry}
+                onChange={setIndustry}
+                placeholder="Search and select your industry..."
+              />
+
+              {/* Topic AI Input */}
+              <TopicAIInput
+                value={topic}
+                onChange={setTopic}
+                industryContext={industry}
+                placeholder="Type your speaking topic or describe what you want to speak about..."
+                onValidationChange={setTopicValidation}
+              />
+              {/* Submit Button */}
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  variant="hero"
+                  className="w-full"
+                  disabled={topicValidation === 'different' || topicValidation === 'loading' || isSearching}
+                >
+                  {isSearching ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Searching...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      Find Speaking Opportunities
+                    </div>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  disabled={isSearching}
+                  className="w-full mt-4"
+                  onClick={() => navigate("/")}
+                >
+                  Back to Home
+                </Button>
+              </div>
+
+              {/* Validation Messages */}
+              <div className="space-y-2">
+                {topicValidation === 'different' && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <p className="text-sm text-red-600">
+                      Please select a topic hint from the AI suggestions before searching.
+                    </p>
+                  </div>
+                )}
+                {topicValidation === 'loading' && (
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm text-blue-600">
+                      AI is analyzing your topic...
+                    </p>
+                  </div>
+                )}
+                {topicValidation === 'match' && (
+                  <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <p className="text-sm text-green-600">
+                      Perfect! You've selected a topic hint. Ready to search!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </form>
+        </Card>
+      </div>
+    </div>
+  );
 };
 
 export default SearchPage;

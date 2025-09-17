@@ -28,7 +28,7 @@ const SearchLoading: React.FC<SearchLoadingProps> = ({
     }, 50); // Update every 50ms for smooth animation
 
     return () => clearInterval(interval);
-  }, [duration, onComplete]);
+  }, [duration]); // Removed onComplete from dependencies to prevent multiple calls
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">

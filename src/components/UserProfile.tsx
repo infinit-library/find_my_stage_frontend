@@ -24,7 +24,7 @@ const UserProfile: React.FC = () => {
           <Avatar className="h-20 w-20">
             <AvatarImage src={user.picture} alt={user.name} />
             <AvatarFallback className="text-lg">
-              {user.firstName?.[0]}{user.lastName?.[0]}
+              {user.firstName}{user.lastName}
             </AvatarFallback>
           </Avatar>
         </div>

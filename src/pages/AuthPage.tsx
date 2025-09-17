@@ -210,9 +210,6 @@ const AuthPage = () => {
               Find My Stage
             </span>
           </div>
-          <p className="text-white/80">
-            Join thousands of speakers finding their perfect stage
-          </p>
         </div>
 
         <Card className="shadow-glow bg-white/95 backdrop-blur">

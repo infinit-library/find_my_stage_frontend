@@ -89,7 +89,8 @@ export const authApi = {
   googleAuth: async (): Promise<void> => {
     
     // Redirect to Google OAuth
-    window.location.href = `${config.api.baseUrl}auth/google`;
+    const baseUrl = config.api.baseUrl.endsWith('/') ? config.api.baseUrl : `${config.api.baseUrl}/`;
+    window.location.href = `${baseUrl}api/auth/google/login`;
   },
 
   refreshToken: async (): Promise<{token: string}> => {
@@ -115,7 +116,9 @@ export const searchApi = {
 // Ticketmaster API functions
 export const ticketmasterApi = {
   searchEvents: async (params: {
-    q: string;
+    q?: string;
+    industry?: string;
+    topic?: string;
     city?: string;
     country?: string;
     size?: number;
@@ -140,6 +143,40 @@ export const ticketmasterApi = {
     };
   }> => {
     const response = await apiClient.get('events/ticketmaster', { params });
+    return response.data;
+  },
+};
+
+// Eventbrite API functions
+export const eventbriteApi = {
+  searchEvents: async (params: {
+    q?: string;
+    industry?: string;
+    topic?: string;
+    city?: string;
+    country?: string;
+    size?: number;
+    num?: number;
+    page?: number;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      events: any[];
+      total_results: number;
+      total_pages: number;
+      current_page: number;
+      page_size: number;
+      query: string;
+      location: string;
+      count: number;
+      requests_made: number;
+      events_fetched: number;
+      max_requested: number;
+      source: string;
+    };
+  }> => {
+    const response = await apiClient.get('events/eventbrite', { params });
     return response.data;
   },
 };

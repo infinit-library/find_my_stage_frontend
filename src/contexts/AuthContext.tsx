@@ -5,9 +5,13 @@ import { config } from '@/lib/config';
 
 interface User {
   id: string;
+  name: string;
   firstName: string;
   lastName: string;
   email: string;
+  picture: string;
+  verified_email: boolean;
+  locale: string;
 }
 
 interface AuthContextType {
