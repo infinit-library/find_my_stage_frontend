@@ -12,7 +12,6 @@ const SubscribeSuccess = () => {
     const urlEmail = new URLSearchParams(location.search).get('email')
 
     useEffect(() => {
-        // Try to refresh subscription state after returning from Stripe
         const email = (params?.email as string) || urlEmail || ''
         if (!email) return
             ; (async () => {

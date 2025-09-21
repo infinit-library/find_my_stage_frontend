@@ -10,13 +10,10 @@ interface EventDetailsModalProps {
   onClose: () => void;
 }
 
-// Helper function to get the best image for an event
 const getEventImage = (event: EventResult): string | null => {
 	if (!event.images || event.images.length === 0) {
 		return null;
 	}
-	
-	// Try to find the best image (prefer 16:9 ratio, then 4:3, then any)
 	const preferredRatios = ['16_9', '4_3'];
 	
 	for (const ratio of preferredRatios) {
@@ -25,19 +22,10 @@ const getEventImage = (event: EventResult): string | null => {
 			return image.url;
 		}
 	}
-	
-	// If no preferred ratio found, return the first image
 	return event.images[0].url;
 }
 
-// Helper function to get map coordinates for a location
-const getLocationCoordinates = (location: string): { lat: number; lng: number; name: string } => {
-	// Default to Nashville, TN if no location provided
-	const defaultLocation = { lat: 36.1627, lng: -86.7816, name: "Nashville, TN" };
-	
-	if (!location) return defaultLocation;
-	
-	// Simple location mapping for common venues
+const getLocationCoordinates = (location: string): { lat: number; lng: number; name: string } => {const defaultLocation = { lat: 36.1627, lng: -86.7816, name: "Nashville, TN" };if (!location) return defaultLocation;
 	const locationMap: { [key: string]: { lat: number; lng: number; name: string } } = {
 		"belmont university": { lat: 36.1317, lng: -86.7928, name: "Belmont University" },
 		"massey concert hall": { lat: 36.1317, lng: -86.7928, name: "Massey Concert Hall" },
@@ -51,11 +39,7 @@ const getLocationCoordinates = (location: string): { lat: number; lng: number; n
 		"dallas": { lat: 32.7767, lng: -96.7970, name: "Dallas, TX" },
 		"mantle conference": { lat: 32.7903, lng: -96.8103, name: "Dallas, TX" },
 		"joshua giles": { lat: 32.7903, lng: -96.8103, name: "Dallas, TX" },
-	};
-	
-	const locationLower = location.toLowerCase();
-	
-	// Prioritize more specific matches first
+	};const locationLower = location.toLowerCase();
 	const priorityOrder = [
 		"american airlines center",
 		"belmont university", 
@@ -70,38 +54,31 @@ const getLocationCoordinates = (location: string): { lat: number; lng: number; n
 		"nashville",
 		"convention center"
 	];
-	
-	// Check priority order first
 	for (const key of priorityOrder) {
 		if (locationLower.includes(key)) {
 			return locationMap[key];
 		}
 	}
-	
-	// Fallback to any match
 	for (const [key, coords] of Object.entries(locationMap)) {
 		if (locationLower.includes(key)) {
 			return coords;
 		}
 	}
-	
-	// Return default if no match found
 	return defaultLocation;
 }
 
-// Helper function to create Google Maps URL from location data
 const createGoogleMapsUrl = (event: EventResult): string => {
   const location = event.location || event.venue || event.contact || '';
 
-  // If we have a specific location, use it for the search
+  
   if (location && location !== 'Venue: TBD') {
-    // Clean up the location string
+    
     const cleanLocation = location.replace(/^Venue:\s*/, '').trim();
     const encodedLocation = encodeURIComponent(cleanLocation);
     return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
   }
 
-  // Fallback to the provided Google Maps link
+  
   return 'https://maps.app.goo.gl/jkJtUbtp9TM23JAy7';
 }
 
@@ -125,27 +102,27 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
   };
 
   const formatDateRange = () => {
-    // Try to get start date from startDate field, then fall back to date field
+    
     const startDateValue = event.startDate || event.date;
 
     if (!startDateValue) {
-      // If no date at all, generate a default future date for demo purposes
-      const defaultStartDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
-      const defaultEndDate = new Date(defaultStartDate.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days later
+      
+      const defaultStartDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); 
+      const defaultEndDate = new Date(defaultStartDate.getTime() + 2 * 24 * 60 * 60 * 1000); 
       return `${formatDate(defaultStartDate.toISOString())} - ${formatDate(defaultEndDate.toISOString())}`;
     }
 
     const startDate = formatDate(startDateValue);
 
-    // If there's an end date, show both start and end dates
+    
     if (event.endDate) {
       const endDate = formatDate(event.endDate);
       return `${startDate} - ${endDate}`;
     }
 
-    // If no end date, generate one 2 days after start date for demo purposes
+    
     const startDateObj = new Date(startDateValue);
-    const endDateObj = new Date(startDateObj.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 days later
+    const endDateObj = new Date(startDateObj.getTime() + 2 * 24 * 60 * 60 * 1000); 
     const endDate = formatDate(endDateObj.toISOString());
 
     return `${startDate} - ${endDate}`;
@@ -167,7 +144,6 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
         <div className="flex-1 overflow-y-auto px-8">
 
           <div className="space-y-8">
-            {/* Event Image/Header */}
             <div className="flex justify-center">
               <div className="w-full max-w-2xl h-64 relative overflow-hidden rounded-2xl shadow-2xl">
                 {eventImage ? (
@@ -177,7 +153,7 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                       alt={event.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // Fallback to placeholder if image fails to load
+                        
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
                         target.nextElementSibling?.classList.remove('hidden');
@@ -206,10 +182,7 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
               </div>
           </div>
 
-
-          {/* Event Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
               <div className="space-y-4">
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold text-foreground border-b-2 border-blue-200 pb-3 flex items-center gap-2">
@@ -262,7 +235,6 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                 </div>
               </div>
 
-              {/* Right Column */}
               <div className="space-y-4">
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold text-foreground border-b-2 border-purple-200 pb-3 flex items-center gap-2">
@@ -275,14 +247,21 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                       <Globe className="w-5 h-5 text-muted-foreground mt-0.5" />
                       <div>
                         <p className="font-medium text-sm text-muted-foreground">Website</p>
-                        <a
-                          href={event.mainUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
+                        <button
+                          onClick={() => {
+                            if (event.mainUrl && event.mainUrl !== '#' && event.mainUrl.startsWith('http')) {
+                              window.open(event.mainUrl, '_blank', 'noopener,noreferrer');
+                            } else {
+                              console.warn('Invalid or missing URL for event:', event.name, event.mainUrl);
+                            }
+                          }}
+                          className="text-primary hover:underline cursor-pointer bg-transparent border-none p-0 text-left"
+                          disabled={!event.mainUrl || event.mainUrl === '#' || !event.mainUrl.startsWith('http')}
                         >
-                          go to website...
-                        </a>
+                          {event.mainUrl && event.mainUrl !== '#' && event.mainUrl.startsWith('http') 
+                            ? 'visit website...' 
+                            : 'website unavailable'}
+                        </button>
                       </div>
                     </div>
 
@@ -296,14 +275,12 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                   </div>
                 </div>
 
-                {/* Event Location Map */}
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-foreground border-b border-orange-200 pb-2 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-orange-500" />
                     Event Location
                   </h4>
                   {(() => {
-                    // Check multiple sources for location information
                     const location = event.location || event.venue || event.contact || '';
                     const eventName = event.name || '';
                     const combinedLocation = `${location} ${eventName}`.toLowerCase();
@@ -328,14 +305,14 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                         </div>
                         <div className="text-center space-y-1">
                           <p className="text-xs text-muted-foreground font-medium">{coords.name}</p>
-                          <a
-                            href={fullMapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          <button
+                            onClick={() => {
+                              window.open(fullMapUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer bg-transparent border-none p-0"
                           >
                             View larger map
-                          </a>
+                          </button>
                         </div>
                       </>
                     );
@@ -344,7 +321,6 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
               </div>
             </div>
 
-            {/* Description Section */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-foreground border-b-2 border-green-200 pb-3 flex items-center gap-2">
                 <User className="w-5 h-5 text-green-500" />

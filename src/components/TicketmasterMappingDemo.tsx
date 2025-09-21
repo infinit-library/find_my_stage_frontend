@@ -18,8 +18,6 @@ const TicketmasterMappingDemo: React.FC = () => {
       alert('Please select both industry and topic');
       return;
     }
-
-    // Convert to Ticketmaster parameters
     const ticketmasterParams = convertToTicketmasterParams(industry, topic);
     const strategies = generateSearchStrategies(industry, topic);
     

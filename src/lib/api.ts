@@ -2,16 +2,14 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import type { SearchInput, EventResult } from './search';
 import { config } from './config';
 
-// Create axios instance with base configuration
 const apiClient: AxiosInstance = axios.create({
   baseURL: 'http://localhost:5000/api/',
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout
+  timeout: 30000,
 });
 
-// Request interceptor to add auth token if available
 apiClient.interceptors.request.use(
   (axiosConfig) => {
     const token = localStorage.getItem(config.storage.accessToken);
@@ -25,14 +23,13 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
+
       localStorage.removeItem(config.storage.accessToken);
       localStorage.removeItem(config.storage.user);
       window.location.href = '/auth';
@@ -41,12 +38,10 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Types for authentication
 export interface LoginRequest {
   email: string;
   password: string;
 }
-
 export interface SignupRequest {
   firstName: string;
   lastName: string;
@@ -54,7 +49,6 @@ export interface SignupRequest {
   password: string;
   confirmPassword: string;
 }
-
 export interface AuthResponse {
   token: string;
   user: {
@@ -64,7 +58,6 @@ export interface AuthResponse {
     email: string;
   };
 }
-
 export interface SignupResponse {
   user: {
     id: string;
@@ -74,30 +67,25 @@ export interface SignupResponse {
   };
 }
 
-// Authentication API functions
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
     const response = await apiClient.post('auth/signin', credentials);
-    return response.data.data; // Extract data from the nested structure
+    return response.data.data;
   },
-
   signup: async (userData: SignupRequest): Promise<SignupResponse> => {
     const response = await apiClient.post('auth/signup', userData);
-    return response.data.data; // Extract data from the nested structure
+    return response.data.data;
   },
-
   googleAuth: async (): Promise<void> => {
-    
-    // Redirect to Google OAuth
+
+
     const baseUrl = config.api.baseUrl.endsWith('/') ? config.api.baseUrl : `${config.api.baseUrl}/`;
     window.location.href = `${baseUrl}api/auth/google/login`;
   },
-
-  refreshToken: async (): Promise<{token: string}> => {
+  refreshToken: async (): Promise<{ token: string }> => {
     const response = await apiClient.post('auth/refresh');
-    return response.data.data; // Extract data from the nested structure
+    return response.data.data;
   },
-
   logout: async (): Promise<void> => {
     await apiClient.post('auth/logout');
     localStorage.removeItem(config.storage.accessToken);
@@ -105,15 +93,17 @@ export const authApi = {
   },
 };
 
-// Search API functions
 export const searchApi = {
   search: async (input: SearchInput): Promise<{ top20: EventResult[]; more100: EventResult[] }> => {
     const response = await apiClient.post('/api/search', input);
     return response.data;
   },
+  ninjaSearch: async (topic: string, industry: string): Promise<any> => {
+    const response = await apiClient.post('/openwebninja/getdata', { topic, industry });
+    return response.data;
+  },
 };
 
-// Ticketmaster API functions
 export const ticketmasterApi = {
   searchEvents: async (params: {
     q?: string;
@@ -147,7 +137,6 @@ export const ticketmasterApi = {
   },
 };
 
-// Eventbrite API functions
 export const eventbriteApi = {
   searchEvents: async (params: {
     q?: string;
@@ -181,37 +170,88 @@ export const eventbriteApi = {
   },
 };
 
-// Payment API functions
+export const callForDataSpeakersApi = {
+  searchEvents: async (params: {
+    q?: string;
+    industry?: string;
+    topic?: string;
+    region?: string;
+    status?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      events: any[];
+      total_count: number;
+      pagination: any;
+      filter: any;
+      search: any;
+      count: number;
+      source: string;
+      fetched_at: string;
+    };
+  }> => {
+    const response = await apiClient.get('events/call-for-data-speakers-events', { params });
+    return response.data;
+  },
+};
+
+export const pretalxApi = {
+  searchEvents: async (params: {
+    maxEvents?: number | null;
+    saveToDatabase?: boolean;
+    headless?: boolean;
+    delay?: number;
+    includePageDetails?: boolean;
+    topic?: string | null;
+    industry?: string | null;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      eventsFound: number;
+      allEvents: any[];
+      saveResult: any;
+      method: string;
+      scrapedAt: string;
+      summary: any;
+      errors: any[];
+    };
+  }> => {
+    const response = await apiClient.post('scraper/pretalx', params);
+    return response.data;
+  },
+};
+
 export const paymentApi = {
   createCheckout: async (email: string): Promise<{ url: string; id?: string }> => {
     const response = await apiClient.post('/api/checkout', { email });
     return response.data;
   },
-
   getSubscription: async (email: string): Promise<{ activeUntil: string | null }> => {
     const response = await apiClient.get(`/api/subscription/${encodeURIComponent(email)}`);
     return response.data;
   },
-
   createTerminalConnectionToken: async (): Promise<{ secret: string }> => {
     const response = await apiClient.post('/api/terminal/connection_token');
     return response.data;
   },
 };
-
 export async function apiSearch(input: SearchInput): Promise<{ top20: EventResult[]; more100: EventResult[] }> {
   return searchApi.search(input);
 }
-
 export async function apiCreateCheckout(email: string): Promise<{ url: string; id?: string }> {
   return paymentApi.createCheckout(email);
 }
-
 export async function apiGetSubscription(email: string): Promise<{ activeUntil: string | null }> {
   return paymentApi.getSubscription(email);
 }
-
 export async function apiCreateTerminalConnectionToken(): Promise<{ secret: string }> {
   return paymentApi.createTerminalConnectionToken();
 }
-
+export async function ninjaSearch(topic: string, industry: string): Promise<{ top20: EventResult[]; more100: EventResult[] }> {
+  return searchApi.ninjaSearch(topic, industry);
+}

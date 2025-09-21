@@ -17,7 +17,7 @@ const LandingPage = () => {
   console.log("isAuthenticated", isAuthenticated);
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/search");
     } else {
       navigate("/auth", { state: { email, activeTab: "signup" } });
     }
@@ -48,7 +48,7 @@ const LandingPage = () => {
             {isAuthenticated ? "Sign Out" : "Sign In"}
           </Button>
           <Button variant="cta" onClick={handleGetStarted}>
-            {isAuthenticated ? "Go to Dashboard" : "Sign Up"}
+            {isAuthenticated ? "Go to Search" : "Sign Up"}
           </Button>
         </div>
       </nav>
