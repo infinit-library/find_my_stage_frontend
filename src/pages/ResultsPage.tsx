@@ -4,12 +4,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SearchLoading } from "@/components/ui/search-loading";
 import { ResultsSkeleton } from "@/components/ui/results-skeleton";
-import { Calendar, Building, User, ExternalLink, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Calendar, Building, User, ExternalLink, ArrowLeft, MapPin, Mail } from "lucide-react";
 import type { EventResult } from "@/lib/search";
 import { combinedSearch } from "@/lib/search";
 import { isSubscribed } from "@/lib/subscription";
 import { EventDetailsModal } from "@/components/EventDetailsModal";
 import EmptyResults from "@/components/EmptyResults";
+import SearchHeader from "@/components/SearchHeader";
 
 type LocationState = {
   topic: string
@@ -51,18 +53,33 @@ const ResultsPage = () => {
   const [showSkeleton, setShowSkeleton] = useState(false);
   const [searchCompleted, setSearchCompleted] = useState(false);
 
+  // Handle URL parameters and payment success
   useEffect(() => {
-    if (!params.topic || !params.industry) {
+    const urlParams = new URLSearchParams(location.search);
+    const topic = urlParams.get('topic') || params.topic;
+    const industry = urlParams.get('industry') || params.industry;
+    const paymentSuccess = urlParams.get('payment') === 'success';
+
+    if (!topic || !industry) {
       navigate("/search");
       return;
+    }
+
+    // If payment was successful, activate subscription
+    if (paymentSuccess) {
+      const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      localStorage.setItem('subscriptionActiveUntil', activeUntil);
+      setSubscribed(true);
     }
 
     const payload = {
       name: "User",
       email: "user@example.com",
-      topic: params.topic!,
-      industry: params.industry!,
+      topic: topic,
+      industry: industry,
     };
+
+    console.log("payload+++++", payload);
 
     (async () => {
       console.log('🚀 Starting combined search (Ticketmaster + Eventbrite + Call for Data Speakers + Pretalx) with payload:', payload);
@@ -75,7 +92,7 @@ const ResultsPage = () => {
       setSearchCompleted(true)
     })()
 
-  }, []);
+  }, [location.search]);
 
 
   useEffect(() => {
@@ -96,6 +113,10 @@ const ResultsPage = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
   };
+
+  useEffect(() => {
+    console.log("more100+++++", displayedMore);
+  }, []);
 
   const handleLoadMore = () => {
     const nextPage = currentPage + 1;
@@ -149,8 +170,8 @@ const ResultsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        <div className="flex items-center justify-between">
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-8">
           <Button
             variant="outline"
             onClick={() => navigate("/search")}
@@ -161,39 +182,60 @@ const ResultsPage = () => {
           </Button>
         </div>
 
-        {/* Search Parameters Header */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm font-medium text-blue-700">Industry:</span>
-              <span className="text-sm text-blue-900 font-semibold">{params.industry}</span>
-            </div>
-            <div className="w-px h-4 bg-blue-300"></div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-              <span className="text-sm font-medium text-indigo-700">Topic:</span>
-              <span className="text-sm text-indigo-900 font-semibold">{params.topic}</span>
-            </div>
-          </div>
-          <div className="mt-2 text-xs text-blue-600">
-            Searching for speaking opportunities in {params.industry?.toLowerCase()} related to {params.topic?.toLowerCase()}
-          </div>
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Verified Opportunities</h1>
-          <p className="text-muted-foreground">Top 20 results include a verified speaker application link. Use the APPLY link on each card.</p>
-          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>✅ Expired events filtered out • Duplicates removed • Results sorted by date</span>
-          </div>
-        </div>
+        {/* Main Content Layout */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Left Side - Results Content */}
+          <div className="flex-1 space-y-8">
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {top20.map((ev) => {
+            {/* Search Parameters Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-700">Industry:</span>
+                  <span className="text-sm text-blue-900 font-semibold">{params.industry}</span>
+                </div>
+                <div className="w-px h-4 bg-blue-300"></div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-indigo-700">Topic:</span>
+                  <span className="text-sm text-indigo-900 font-semibold">{params.topic}</span>
+                </div>
+              </div>
+              <div className="mt-2 text-xs text-blue-600">
+                Searching for speaking opportunities in {params.industry?.toLowerCase()} related to {params.topic?.toLowerCase()}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold">Verified Opportunities</h1>
+              <p className="text-muted-foreground">Top 20 results include a verified speaker application link. Use the APPLY link on each card.</p>
+              <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>✅ Expired events filtered out • Duplicates removed • Results sorted by date</span>
+              </div>
+            </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+          {top20
+            .sort((a, b) => {
+              // Sort events with contact information to the top
+              const aHasContact = !!(a.contact && a.contact !== 'Contact TBD' && a.contact !== 'Contact: See event details');
+              const bHasContact = !!(b.contact && b.contact !== 'Contact TBD' && b.contact !== 'Contact: See event details');
+              
+              if (aHasContact && !bHasContact) return -1;
+              if (!aHasContact && bHasContact) return 1;
+              return 0;
+            })
+            .map((ev) => {
             const eventImage = getEventImage(ev);
+            const hasContact = !!(ev.contact && ev.contact !== 'Contact TBD' && ev.contact !== 'Contact: See event details');
             return (
-              <Card key={ev.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow flex flex-col h-full">
+              <Card 
+                key={ev.id} 
+                className={`overflow-hidden shadow-lg hover:shadow-xl transition-shadow flex flex-col h-full w-full max-w-sm ${
+                  hasContact ? 'bg-yellow-50 border-yellow-200' : ''
+                }`}
+              >
                 <div className="aspect-video relative overflow-hidden">
                   {eventImage ? (
                     <>
@@ -228,6 +270,14 @@ const ResultsPage = () => {
                       </div>
                     </div>
                   )}
+                  
+                  {/* Contact Information Badge */}
+                  {hasContact && (
+                    <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-md">
+                      <Mail className="w-3 h-3" />
+                      Contact Available
+                    </div>
+                  )}
                 </div>
 
                 <CardContent className="p-4 flex flex-col flex-grow">
@@ -241,7 +291,7 @@ const ResultsPage = () => {
                       }) : 'Date TBD'}</span>
                     </div>
 
-                    <h3 className="font-bold text-lg leading-tight line-clamp-2">{ev.name}</h3>
+                    <h3 className="font-bold text-base leading-tight line-clamp-2">{ev.name}</h3>
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Building className="w-4 h-4" />
@@ -250,7 +300,47 @@ const ResultsPage = () => {
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="w-4 h-4" />
-                      <span className="line-clamp-1">{ev.contact || 'Venue: TBD'}</span>
+                      <span className="line-clamp-1">
+                        {ev.contact || 
+                         (ev.venue ? `Venue: ${ev.venue}` : 
+                          ev.organizer ? `Organizer: ${ev.organizer}` : 
+                          'Contact: See event details')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <span className="line-clamp-1">
+                        {(() => {
+                          // Check if it's a virtual event
+                          if (ev.eventDetails?.isVirtual) {
+                            return '🌐 Virtual Event';
+                          }
+                          
+                          // Build location string from available fields
+                          const locationParts = [];
+                          
+                          if (ev.eventDetails?.address) {
+                            locationParts.push(ev.eventDetails.address);
+                          } else if (ev.location) {
+                            locationParts.push(ev.location);
+                          } else if (ev.venue) {
+                            locationParts.push(ev.venue);
+                          }
+                          
+                          if (ev.eventDetails?.city) {
+                            locationParts.push(ev.eventDetails.city);
+                          }
+                          
+                          if (ev.eventDetails?.country) {
+                            locationParts.push(ev.eventDetails.country);
+                          }
+                          
+                          return locationParts.length > 0 
+                            ? locationParts.join(', ') 
+                            : 'Location TBD';
+                        })()}
+                      </span>
                     </div>
                   </div>
 
@@ -279,13 +369,29 @@ const ResultsPage = () => {
             </div>
           </div>
 
-          {!subscribed ? (
+          {/* {!subscribed ? ( */}
             <div className="relative border rounded-lg overflow-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6  ">
-                {displayedMore.map((ev) => {
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6 justify-items-center">
+                {displayedMore
+                  .sort((a, b) => {
+                    // Sort events with contact information to the top
+                    const aHasContact = !!(a.contact && a.contact !== 'Contact TBD' && a.contact !== 'Contact: See event details');
+                    const bHasContact = !!(b.contact && b.contact !== 'Contact TBD' && b.contact !== 'Contact: See event details');
+                    
+                    if (aHasContact && !bHasContact) return -1;
+                    if (!aHasContact && bHasContact) return 1;
+                    return 0;
+                  })
+                  .map((ev) => {
                   const eventImage = getEventImage(ev);
+                  const hasContact = !!(ev.contact && ev.contact !== 'Contact TBD' && ev.contact !== 'Contact: See event details');
                   return (
-                    <Card key={ev.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow flex flex-col h-full">
+                    <Card 
+                      key={ev.id} 
+                      className={`overflow-hidden shadow-lg hover:shadow-xl transition-shadow flex flex-col h-full w-full max-w-sm ${
+                        hasContact ? 'bg-yellow-50 border-yellow-200' : ''
+                      }`}
+                    >
                       {/* Event Image */}
                       <div className="aspect-video relative overflow-hidden">
                         {eventImage ? (
@@ -321,99 +427,12 @@ const ResultsPage = () => {
                             </div>
                           </div>
                         )}
-                      </div>
-
-                      <CardContent className="p-4 flex flex-col flex-grow">
-                        {/* Event Details */}
-                        <div className="space-y-2 flex-grow">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            <span>{ev.startDate || ev.date ? new Date(ev.startDate || ev.date || '').toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            }) : 'Date TBD'}</span>
-                          </div>
-
-                          <h3 className="font-bold text-lg leading-tight line-clamp-2">{ev.name}</h3>
-
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Building className="w-4 h-4" />
-                            <span className="line-clamp-1">{ev.organizer || 'Unknown'}</span>
-                          </div>
-
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="w-4 h-4" />
-                            <span className="line-clamp-1">{ev.contact || 'Venue: TBD'}</span>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-2 pt-4 mt-auto">
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => handleViewEvent(ev)}
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            View Event
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Subscription Overlay */}
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                <div className="space-y-3 max-w-md">
-                  <h3 className="text-xl font-semibold">For 100+ more opportunities, subscribe for only $97/mo</h3>
-                  <p className="text-muted-foreground">Unlock full access instantly and keep access for 30 days per billing period.</p>
-                  <Button variant="cta" size="lg" onClick={() => navigate("/subscribe", { state: { topic: params.topic, industry: params.industry } })}>Subscribe</Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {displayedMore.map((ev) => {
-                  const eventImage = getEventImage(ev);
-                  return (
-                    <Card key={ev.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow flex flex-col h-full">
-                      {/* Event Image */}
-                      <div className="aspect-video relative overflow-hidden">
-                        {eventImage ? (
-                          <>
-                            <img
-                              src={eventImage}
-                              alt={ev.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-black/20"></div>
-                            <div className="absolute inset-0 flex items-center justify-center hidden">
-                              <div className="text-center text-white">
-                                <div className="w-16 h-16 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center">
-                                  <Calendar className="w-8 h-8" />
-                                </div>
-                                <p className="text-sm font-medium">Event</p>
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                            <div className="text-center text-gray-600">
-                              <div className="w-16 h-16 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center">
-                                <Calendar className="w-8 h-8" />
-                              </div>
-                              <p className="text-sm font-medium">Event</p>
-                            </div>
+                        
+                        {/* Contact Information Badge */}
+                        {hasContact && (
+                          <div className="absolute top-2 right-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-md">
+                            <Mail className="w-3 h-3" />
+                            Contact Available
                           </div>
                         )}
                       </div>
@@ -430,7 +449,7 @@ const ResultsPage = () => {
                             }) : 'Date TBD'}</span>
                           </div>
 
-                          <h3 className="font-bold text-lg leading-tight line-clamp-2">{ev.name}</h3>
+                          <h3 className="font-bold text-base leading-tight line-clamp-2">{ev.name}</h3>
 
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Building className="w-4 h-4" />
@@ -473,8 +492,43 @@ const ResultsPage = () => {
                   </Button>
                 </div>
               )}
-            </>
-          )}
+
+              {/* Subscription Overlay */}
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center ">
+                <div className="space-y-3 max-w-md border-2 border-blue-500 rounded-lg p-6 bg-white">
+                  <h3 className="text-xl font-semibold">For 100+ more opportunities, subscribe for only $97/mo</h3>
+                  <p className="text-muted-foreground">Unlock full access instantly and keep access for 30 days per billing period.</p>
+                  <Button
+                    variant="cta"
+                    size="lg"
+                    onClick={() => 
+                      navigate("/subscribe", { 
+                        state: { 
+                          topic: params.topic, 
+                          industry: params.industry 
+                        }
+                      })
+                    }
+                  >
+                    Subscribe
+                  </Button>
+                </div>
+              </div>
+            </div>
+          {/* ) : ( */}
+          {/* )} */}
+          </div>
+          </div>
+
+          {/* Right Side - Search Header */}
+          <div className="w-full lg:w-80 flex-shrink-0">
+            <div className="lg:sticky lg:top-6">
+              <SearchHeader 
+                currentIndustry={params.industry}
+                currentTopic={params.topic}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

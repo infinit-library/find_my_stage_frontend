@@ -1,5 +1,5 @@
-// Ticketmaster Parameter Mapping System
-// Converts our industry and topic selections to Ticketmaster-compatible search parameters
+
+
 
 export interface TicketmasterSearchParams {
   keyword: string;
@@ -13,9 +13,9 @@ export interface TicketmasterSearchParams {
   subGenreName?: string;
 }
 
-// Ticketmaster Classification IDs and Names
+
 export const TICKETMASTER_CLASSIFICATIONS = {
-  // Arts & Theatre
+  
   'Arts & Theatre': {
     id: 'KZFzniwnSyZfZ7v7nJ',
     name: 'Arts & Theatre',
@@ -26,7 +26,7 @@ export const TICKETMASTER_CLASSIFICATIONS = {
     }
   },
   
-  // Sports
+  
   'Sports': {
     id: 'KZFzniwnSyZfZ7v7nE',
     name: 'Sports',
@@ -39,7 +39,7 @@ export const TICKETMASTER_CLASSIFICATIONS = {
     }
   },
   
-  // Music
+  
   'Music': {
     id: 'KZFzniwnSyZfZ7v7nJ',
     name: 'Music',
@@ -52,7 +52,7 @@ export const TICKETMASTER_CLASSIFICATIONS = {
     }
   },
   
-  // Miscellaneous
+  
   'Miscellaneous': {
     id: 'KZFzniwnSyZfZ7v7n1',
     name: 'Miscellaneous',
@@ -64,18 +64,18 @@ export const TICKETMASTER_CLASSIFICATIONS = {
   }
 };
 
-// Industry to Ticketmaster mapping
+
 export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> = {
-  // Technology
+  
   'Technology': {
     keyword: 'technology conference',
-    classificationId: 'KZFzniwnSyZfZ7v7n1', // Miscellaneous
+    classificationId: 'KZFzniwnSyZfZ7v7n1', 
     classificationName: 'Miscellaneous',
     segmentId: 'KZFzniwnSyZfZ7v7n1',
     segmentName: 'Other'
   },
   
-  // Finance
+  
   'Finance': {
     keyword: 'finance conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -84,7 +84,7 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
     segmentName: 'Other'
   },
   
-  // Healthcare
+  
   'Healthcare': {
     keyword: 'healthcare conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -93,7 +93,7 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
     segmentName: 'Other'
   },
   
-  // Education
+  
   'Education': {
     keyword: 'education conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -102,7 +102,7 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
     segmentName: 'Other'
   },
   
-  // Business
+  
   'Business': {
     keyword: 'business conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -111,7 +111,7 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
     segmentName: 'Other'
   },
   
-  // Marketing
+  
   'Marketing': {
     keyword: 'marketing conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -120,7 +120,7 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
     segmentName: 'Other'
   },
   
-  // Data & Analytics
+  
   'Data & Analytics': {
     keyword: 'data analytics conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -129,7 +129,7 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
     segmentName: 'Other'
   },
   
-  // Design
+  
   'Design': {
     keyword: 'design conference',
     classificationId: 'KZFzniwnSyZfZ7v7n1',
@@ -139,9 +139,9 @@ export const INDUSTRY_TO_TICKETMASTER: Record<string, TicketmasterSearchParams> 
   }
 };
 
-// Topic to keyword mapping for better search results
+
 export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
-  // Technology topics
+  
   'Artificial Intelligence & Machine Learning': ['AI conference', 'machine learning summit', 'artificial intelligence event'],
   'Cloud Computing & Infrastructure': ['cloud computing conference', 'infrastructure summit', 'cloud technology event'],
   'Cybersecurity & Data Protection': ['cybersecurity conference', 'data protection summit', 'security event'],
@@ -163,7 +163,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'System Architecture & Design': ['architecture conference', 'system design summit', 'architecture event'],
   'Emerging Technologies & Trends': ['emerging technology conference', 'tech trends summit', 'innovation event'],
 
-  // Finance topics
+  
   'Fintech Innovation & Digital Banking': ['fintech conference', 'digital banking summit', 'financial technology event'],
   'Cryptocurrency & Blockchain Technology': ['cryptocurrency conference', 'blockchain summit', 'crypto event'],
   'Investment Strategies & Portfolio Management': ['investment conference', 'portfolio management summit', 'investment event'],
@@ -185,7 +185,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Retail Banking & Customer Experience': ['retail banking conference', 'customer experience summit', 'banking event'],
   'Central Bank Digital Currencies (CBDC)': ['CBDC conference', 'digital currencies summit', 'central bank digital currency event'],
 
-  // Healthcare topics
+  
   'Digital Health & Telemedicine': ['digital health conference', 'telemedicine summit', 'health technology event'],
   'Healthcare Data Analytics': ['healthcare analytics conference', 'health data summit', 'healthcare data event'],
   'Medical Device Innovation': ['medical device conference', 'healthcare innovation summit', 'medical technology event'],
@@ -207,7 +207,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Healthcare Workforce Development': ['healthcare workforce conference', 'healthcare training summit', 'healthcare workforce event'],
   'Healthcare Innovation & Research': ['healthcare innovation conference', 'medical research summit', 'healthcare research event'],
 
-  // Education topics
+  
   'EdTech Solutions & Digital Learning': ['edtech conference', 'digital learning summit', 'education technology event'],
   'Online Learning Platforms & MOOCs': ['online learning conference', 'MOOC summit', 'e-learning event'],
   'Student Engagement & Experience': ['student engagement conference', 'education experience summit', 'student experience event'],
@@ -229,7 +229,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Educational Accessibility & Equity': ['educational accessibility conference', 'education equity summit', 'accessible education event'],
   'Future of Education & Skills': ['future of education conference', 'education trends summit', 'education future event'],
 
-  // Business topics
+  
   'Business Strategy & Planning': ['business strategy conference', 'strategic planning summit', 'business strategy event'],
   'Leadership Development & Management': ['leadership conference', 'management development summit', 'leadership event'],
   'Change Management & Transformation': ['change management conference', 'transformation summit', 'change management event'],
@@ -251,7 +251,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Business Model Innovation': ['business model conference', 'business innovation summit', 'business model event'],
   'Global Business & International Trade': ['global business conference', 'international trade summit', 'global business event'],
 
-  // Marketing topics
+  
   'Digital Marketing & Strategy': ['digital marketing conference', 'marketing strategy summit', 'digital marketing event'],
   'Content Marketing & Creation': ['content marketing conference', 'content creation summit', 'content marketing event'],
   'Social Media Marketing & Management': ['social media conference', 'social media marketing summit', 'social media event'],
@@ -273,7 +273,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Marketing Attribution & ROI': ['marketing attribution conference', 'marketing ROI summit', 'marketing measurement event'],
   'Future of Marketing & Trends': ['future of marketing conference', 'marketing trends summit', 'marketing future event'],
 
-  // Data & Analytics topics
+  
   'Data Science & Machine Learning': ['data science conference', 'machine learning summit', 'data science event'],
   'Business Intelligence & Analytics': ['business intelligence conference', 'analytics summit', 'BI event'],
   'Data Visualization & Storytelling': ['data visualization conference', 'data storytelling summit', 'data viz event'],
@@ -295,7 +295,7 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Data Ethics & Responsible AI': ['data ethics conference', 'responsible AI summit', 'data ethics event'],
   'Future of Data & Analytics': ['future of data conference', 'analytics trends summit', 'data future event'],
 
-  // Design topics
+  
   'User Interface (UI) Design': ['UI design conference', 'interface design summit', 'UI event'],
   'Product Design & Strategy': ['product design conference', 'product strategy summit', 'product design event'],
   'Design Thinking & Process': ['design thinking conference', 'design process summit', 'design thinking event'],
@@ -317,22 +317,22 @@ export const TOPIC_TO_KEYWORDS: Record<string, string[]> = {
   'Future of Design & Technology': ['future of design conference', 'design technology summit', 'design future event']
 };
 
-// AI-optimized keyword generation for better Ticketmaster search results
+
 function generateOptimizedKeywords(industry: string, topic: string): string[] {
-  // Generate multiple keyword variations optimized for Ticketmaster search
+  
   const keywords: string[] = [];
   
-  // Extract core terms from topic
+  
   const coreTerms = topic.toLowerCase()
     .replace(/[&]/g, 'and')
     .replace(/[^a-z0-9\s]/g, '')
     .split(/\s+/)
     .filter(term => term.length > 2);
   
-  // UNIVERSAL AI Strategy: Start with most likely to exist in Ticketmaster for ALL industries
-  // Ticketmaster has: conferences, summits, events, meetings, conventions, workshops, seminars
   
-  // For ALL industries, start with generic terms that are most likely to exist
+  
+  
+  
   keywords.push('conference');
   keywords.push('summit');
   keywords.push('event');
@@ -341,26 +341,26 @@ function generateOptimizedKeywords(industry: string, topic: string): string[] {
   keywords.push('workshop');
   keywords.push('seminar');
   
-  // Then add industry-specific terms
+  
   const industryLower = industry.toLowerCase();
   keywords.push(`${industryLower} conference`);
   keywords.push(`${industryLower} summit`);
   keywords.push(`${industryLower} event`);
   keywords.push(`${industryLower} meeting`);
   
-  // Then add topic-specific combinations
+  
   const topicLower = topic.toLowerCase();
   keywords.push(`${topicLower} conference`);
   keywords.push(`${topicLower} summit`);
   keywords.push(`${topicLower} event`);
   
-  // Then add industry + topic combinations
+  
   keywords.push(`${industryLower} ${topicLower} conference`);
   keywords.push(`${topicLower} ${industryLower} conference`);
   keywords.push(`${industryLower} ${topicLower} summit`);
   keywords.push(`${topicLower} ${industryLower} event`);
   
-  // Generate optimized keyword combinations for specific industries
+  
   if (industry.toLowerCase() === 'marketing') {
     if (topic.toLowerCase().includes('customer experience') || topic.toLowerCase().includes('customer journey')) {
       keywords.push('customer experience conference');
@@ -433,7 +433,7 @@ function generateOptimizedKeywords(industry: string, topic: string): string[] {
       keywords.push('finance event');
     }
   } else if (industry.toLowerCase() === 'healthcare') {
-    // Healthcare events are rare in Ticketmaster, use broader terms
+    
     keywords.push('conference');
     keywords.push('summit');
     keywords.push('event');
@@ -445,9 +445,9 @@ function generateOptimizedKeywords(industry: string, topic: string): string[] {
     keywords.push('healthcare event');
     keywords.push('medical event');
   } else if (industry.toLowerCase() === 'education') {
-    // AI Strategy: Education events are rare in Ticketmaster, use broader terms first
+    
     if (topic.toLowerCase().includes('student engagement') || topic.toLowerCase().includes('student experience')) {
-      // Start with most likely to exist in Ticketmaster
+      
       keywords.push('conference');
       keywords.push('summit');
       keywords.push('event');
@@ -455,7 +455,7 @@ function generateOptimizedKeywords(industry: string, topic: string): string[] {
       keywords.push('convention');
       keywords.push('workshop');
       keywords.push('seminar');
-      // Then try education-specific terms
+      
       keywords.push('education conference');
       keywords.push('educational conference');
       keywords.push('student engagement conference');
@@ -515,14 +515,14 @@ function generateOptimizedKeywords(industry: string, topic: string): string[] {
     keywords.push('leadership conference');
     keywords.push('management conference');
   } else {
-    // Generic fallback
+    
     keywords.push(`${industry.toLowerCase()} conference`);
     keywords.push('business conference');
     keywords.push('professional conference');
     keywords.push('industry conference');
   }
   
-  // Remove duplicates and return
+  
   return [...new Set(keywords)];
 }
 
@@ -533,18 +533,18 @@ function generateOptimizedKeywords(industry: string, topic: string): string[] {
  * @returns TicketmasterSearchParams object
  */
 export function convertToTicketmasterParams(industry: string, topic: string): TicketmasterSearchParams {
-  // Use AI-optimized keyword generation for better search results
+  
   const optimizedKeywords = generateOptimizedKeywords(industry, topic);
   
-  // Use the first (most relevant) keyword from the optimized list
+  
   const primaryKeyword = optimizedKeywords[0];
 
-  // UNIVERSAL STRATEGY: For ALL industries, don't use classification filters
-  // as professional conferences are unlikely to be in Ticketmaster's entertainment categories
-  // This ensures ALL industries get broader search results
+  
+  
+  
   return {
     keyword: primaryKeyword,
-    // No classification filters for better results across ALL industries
+    
     classificationId: undefined,
     classificationName: undefined,
     segmentId: undefined,
@@ -570,13 +570,13 @@ export function getAlternativeKeywords(topic: string): string[] {
 export function generateSearchStrategies(industry: string, topic: string): TicketmasterSearchParams[] {
   const strategies: TicketmasterSearchParams[] = [];
   
-  // Get AI-optimized keywords
+  
   const optimizedKeywords = generateOptimizedKeywords(industry, topic);
   
-  // UNIVERSAL STRATEGY: For ALL industries, don't use classification filters
-  // This ensures ALL industries get broader search results
   
-  // Generate strategies without classification filters for ALL industries
+  
+  
+  
   optimizedKeywords.slice(0, 5).forEach(keyword => {
     strategies.push({
       keyword,

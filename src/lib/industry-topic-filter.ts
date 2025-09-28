@@ -1,23 +1,11 @@
 import { aiSuggestionService } from './ai-suggestions';
 
-/**
- * Industry-Topic Filter Utility
- * 
- * This utility provides functions to generate topic keywords from industry
- * using AI prompts. No static data - purely AI-driven approach.
- */
 
 export interface IndustryTopicResult {
   industry: string;
   topics: string[];
   prompt: string;
 }
-
-/**
- * Generate topic keywords from industry using AI prompt
- * @param industry - The industry name (e.g., "Finance", "Healthcare", "Software")
- * @returns Promise<IndustryTopicResult> - Object containing industry, topics array, and the prompt used
- */
 export async function generateTopicsFromIndustry(industry: string): Promise<IndustryTopicResult> {
   try {
     const topics = await aiSuggestionService.generateTopicKeywordsFromIndustry(industry);
@@ -38,12 +26,6 @@ export async function generateTopicsFromIndustry(industry: string): Promise<Indu
   }
 }
 
-/**
- * Generate topic suggestions based on input using AI prompt
- * @param input - The input text to generate suggestions for
- * @param industry - Optional industry context
- * @returns Promise<string[]> - Array of topic suggestions
- */
 export async function generateTopicSuggestions(input: string, industry?: string): Promise<string[]> {
   try {
     return await aiSuggestionService.generateTopicSuggestions(input, industry);
@@ -53,11 +35,6 @@ export async function generateTopicSuggestions(input: string, industry?: string)
   }
 }
 
-/**
- * Generate industry suggestions based on input using AI prompt
- * @param input - The input text to generate industry suggestions for
- * @returns Promise<string[]> - Array of industry suggestions
- */
 export async function generateIndustrySuggestions(input: string): Promise<string[]> {
   try {
     return await aiSuggestionService.generateIndustrySuggestions(input);
@@ -67,12 +44,6 @@ export async function generateIndustrySuggestions(input: string): Promise<string
   }
 }
 
-/**
- * Check if a topic is related to an industry using AI prompt
- * @param topic - The topic to check
- * @param industry - The industry to check against
- * @returns Promise<boolean> - Whether the topic is related to the industry
- */
 export async function isTopicRelatedToIndustry(topic: string, industry: string): Promise<boolean> {
   try {
     return await aiSuggestionService.isTopicRelatedToIndustry(topic, industry);
@@ -82,12 +53,6 @@ export async function isTopicRelatedToIndustry(topic: string, industry: string):
   }
 }
 
-/**
- * Convert sentences to topic keywords using AI prompt
- * @param sentence - The sentence to convert
- * @param industry - Optional industry context
- * @returns Promise<string[]> - Array of topic keywords
- */
 export async function convertSentenceToTopic(sentence: string, industry?: string): Promise<string[]> {
   try {
     return await aiSuggestionService.convertSentenceToTopic(sentence, industry);
@@ -97,11 +62,6 @@ export async function convertSentenceToTopic(sentence: string, industry?: string
   }
 }
 
-/**
- * Get industry-based topic hints using AI prompt
- * @param industry - The industry name
- * @returns Promise<string[]> - Array of topic hints
- */
 export async function getIndustryTopicHints(industry: string): Promise<string[]> {
   try {
     return await aiSuggestionService.getIndustryTopicHints(industry);
@@ -111,18 +71,10 @@ export async function getIndustryTopicHints(industry: string): Promise<string[]>
   }
 }
 
-/**
- * Get the AI prompt for generating topic keywords from industry
- * @param industry - The industry name
- * @returns string - The prompt that would be sent to AI
- */
 export function getIndustryTopicPrompt(industry: string): string {
   return aiSuggestionService.getIndustryTopicPrompt(industry);
 }
 
-/**
- * Example usage and testing function
- */
 export async function testIndustryTopicFilter() {
   const testIndustries = ['Finance', 'Healthcare', 'Software', 'Technology', 'Education'];
   
@@ -141,5 +93,4 @@ export async function testIndustryTopicFilter() {
   }
 }
 
-// Export for easy testing
 export { aiSuggestionService };

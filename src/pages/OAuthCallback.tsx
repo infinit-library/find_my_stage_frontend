@@ -31,7 +31,6 @@ const OAuthCallback = () => {
           return;
         }
 
-        // Handle the OAuth callback with enhanced service
         const response = await googleAuth.handleCallback(code, state);
         
         if (response.success) {
@@ -39,12 +38,10 @@ const OAuthCallback = () => {
           setIsNewUser(response.isNewUser || false);
           setStatus('success');
           
-          // Redirect to dashboard after a short delay
           setTimeout(() => {
             navigate('/dashboard');
           }, 2000);
         } else {
-          // Handle specific error cases
           if (response.code === 'NOT_IMPLEMENTED') {
             throw new Error('Google OAuth is not yet implemented on the backend. Please use email/password authentication for now.');
           } else {

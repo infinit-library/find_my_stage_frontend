@@ -1,6 +1,3 @@
-// Global Industry Configuration
-// This file provides comprehensive industry options and their associated topic hints
-
 export interface IndustryConfig {
   name: string;
   keywords: string[];
@@ -227,7 +224,6 @@ export const GLOBAL_INDUSTRIES: IndustryConfig[] = [
   }
 ];
 
-// Helper functions
 export const getIndustryByName = (name: string): IndustryConfig | undefined => {
   return GLOBAL_INDUSTRIES.find(industry => 
     industry.name.toLowerCase() === name.toLowerCase()
@@ -254,7 +250,6 @@ export const getTopicHintsForIndustry = (industryName: string): string[] => {
   return industry ? industry.topicHints : [];
 };
 
-// Default industry options for dropdowns and suggestions
 export const DEFAULT_INDUSTRY_OPTIONS = [
   "Technology",
   "Finance", 

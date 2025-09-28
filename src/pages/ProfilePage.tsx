@@ -59,7 +59,6 @@ const ProfilePage = () => {
   };
 
   const handleSave = () => {
-    // Simulate saving profile
     alert("Profile saved successfully!");
   };
 

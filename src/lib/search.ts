@@ -1,7 +1,8 @@
-import { ticketmasterApi, eventbriteApi, callForDataSpeakersApi, pretalxApi, searchApi } from './api';
+import { ticketmasterApi, eventbriteApi, callForDataSpeakersApi, pretalxApi, searchApi, serpApi } from './api';
 import { convertToTicketmasterParams, generateSearchStrategies } from './ticketmaster-mapping';
+import { aiSuggestionService } from './ai-suggestions';
 
-// Helper function to validate and format URLs
+
 function formatUrl(url: string | undefined, fallback: string): string {
     if (!url || url === '#' || url === '' || !url.startsWith('http')) {
         return fallback;
@@ -37,6 +38,262 @@ export type EventResult = {
         ratio?: string
         fallback?: boolean
     }>
+    
+    eventDetails?: {
+        eventType?: string
+        eventCategory?: string
+        format?: string
+        duration?: string
+        timezone?: string
+        venue?: string
+        address?: string
+        city?: string
+        country?: string
+        isVirtual?: boolean
+        pricing?: string[]
+        isFree?: boolean
+        registrationRequired?: boolean
+        registrationDeadline?: string
+        capacity?: number
+        topics?: string[]
+        targetAudience?: string[]
+        speakers?: string[]
+        agenda?: string[]
+        language?: string
+        cpdCredits?: number
+        networkingOpportunities?: boolean
+        hasExhibition?: boolean
+        hasWorkshops?: boolean
+        hasKeynotes?: boolean
+        hasPanelDiscussion?: boolean
+        accessibility?: string
+        socialMedia?: string[]
+        website?: string
+        tags?: string[]
+        keywords?: string[]
+    } | null
+}
+
+
+function convertSerpApiEvent(event: any, index: number): EventResult {
+    const fallbackStartDate = new Date(Date.now() + (index + 1) * 7 * 24 * 60 * 60 * 1000);
+    const fallbackEndDate = new Date(fallbackStartDate.getTime() + 2 * 24 * 60 * 60 * 1000);
+    
+    
+    const startDate = event.date || event.startDate || fallbackStartDate.toISOString();
+    const endDate = event.endDate || fallbackEndDate.toISOString();
+    
+    
+    let enhancedDescription = event.description || '';
+    if (event.eventDetails) {
+        const details = event.eventDetails;
+        
+        
+        if (details.pricing && details.pricing.length > 0) {
+            enhancedDescription += `\n\n💰 Pricing: ${details.pricing.join(', ')}`;
+        } else if (details.isFree) {
+            enhancedDescription += '\n\n💰 Pricing: Free Event';
+        }
+        
+        
+        if (details.duration) {
+            enhancedDescription += `\n\n⏱️ Duration: ${details.duration}`;
+        }
+        
+        
+        if (details.topics && details.topics.length > 0) {
+            enhancedDescription += `\n\n📋 Topics: ${details.topics.join(', ')}`;
+        }
+        
+        
+        if (details.targetAudience && details.targetAudience.length > 0) {
+            enhancedDescription += `\n\n👥 Target Audience: ${details.targetAudience.join(', ')}`;
+        }
+        
+        
+        const features = [];
+        if (details.hasKeynotes) features.push('Keynotes');
+        if (details.hasWorkshops) features.push('Workshops');
+        if (details.hasPanelDiscussion) features.push('Panel Discussions');
+        if (details.hasExhibition) features.push('Exhibition');
+        if (details.networkingOpportunities) features.push('Networking');
+        if (details.isVirtual) features.push('Virtual Event');
+        
+        if (features.length > 0) {
+            enhancedDescription += `\n\n✨ Features: ${features.join(', ')}`;
+        }
+        
+        
+        if (details.registrationRequired) {
+            enhancedDescription += '\n\n📝 Registration Required';
+            if (details.registrationDeadline) {
+                enhancedDescription += ` (Deadline: ${details.registrationDeadline})`;
+            }
+        }
+        
+        
+        if (details.capacity) {
+            enhancedDescription += `\n\n👥 Capacity: ${details.capacity} attendees`;
+        }
+        
+        
+        if (details.cpdCredits) {
+            enhancedDescription += `\n\n🎓 CPD Credits: ${details.cpdCredits}`;
+        }
+    }
+    
+    return {
+        id: event.id || `serpapi_${index}`,
+        name: event.title || event.name || 'Untitled Event',
+        mainUrl: formatUrl(event.url, '#'),
+        applicationUrl: event.url ? formatUrl(event.url, '#') : undefined,
+        contact: (() => {
+            // Extract contact information from multiple possible fields
+            const contactInfo = [];
+            
+            // Primary contact info from SerpAPI extraction
+            if (event.contactInfo?.email) {
+                contactInfo.push(`Email: ${event.contactInfo.email}`);
+            }
+            if (event.contactInfo?.phone) {
+                contactInfo.push(`Phone: ${event.contactInfo.phone}`);
+            }
+            if (event.contactInfo?.website) {
+                contactInfo.push(`Website: ${event.contactInfo.website}`);
+            }
+            
+            // Additional contact fields
+            if (event.contact_email) {
+                contactInfo.push(`Email: ${event.contact_email}`);
+            }
+            if (event.contact_phone) {
+                contactInfo.push(`Phone: ${event.contact_phone}`);
+            }
+            if (event.organizer_email) {
+                contactInfo.push(`Email: ${event.organizer_email}`);
+            }
+            if (event.contact) {
+                contactInfo.push(event.contact);
+            }
+            
+            // Extract from description if no direct contact info
+            if (contactInfo.length === 0 && event.description) {
+                const emailMatch = event.description.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+                if (emailMatch) {
+                    contactInfo.push(`Email: ${emailMatch[0]}`);
+                }
+                
+                const phoneMatch = event.description.match(/\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/);
+                if (phoneMatch) {
+                    contactInfo.push(`Phone: ${phoneMatch[0]}`);
+                }
+            }
+            
+            return contactInfo.length > 0 ? contactInfo.join(' • ') : undefined;
+        })(),
+        organizer: event.organizer || event.organizer_name || event.publisher || 'Unknown Organizer',
+        verifiedApplyLink: false, 
+        description: enhancedDescription,
+        date: event.date || startDate,
+        startDate: startDate,
+        endDate: endDate,
+        location: (() => {
+            // Extract location information from multiple possible fields
+            const locationParts = [];
+            
+            // Check for virtual events first
+            if (event.eventDetails?.isVirtual || event.isVirtual) {
+                return '🌐 Virtual Event';
+            }
+            
+            // Primary location from SerpAPI extraction
+            if (event.location) {
+                locationParts.push(event.location);
+            }
+            
+            // Venue information
+            if (event.venue?.name) {
+                locationParts.push(event.venue.name);
+            }
+            if (event.venue?.address) {
+                locationParts.push(event.venue.address);
+            }
+            if (event.venue?.city) {
+                locationParts.push(event.venue.city);
+            }
+            if (event.venue?.state) {
+                locationParts.push(event.venue.state);
+            }
+            if (event.venue?.country) {
+                locationParts.push(event.venue.country);
+            }
+            
+            // Additional location fields
+            if (event.address) {
+                locationParts.push(event.address);
+            }
+            if (event.city) {
+                locationParts.push(event.city);
+            }
+            if (event.state) {
+                locationParts.push(event.state);
+            }
+            if (event.country) {
+                locationParts.push(event.country);
+            }
+            
+            // Event details location
+            if (event.eventDetails?.venue) {
+                locationParts.push(event.eventDetails.venue);
+            }
+            if (event.eventDetails?.address) {
+                locationParts.push(event.eventDetails.address);
+            }
+            if (event.eventDetails?.city) {
+                locationParts.push(event.eventDetails.city);
+            }
+            if (event.eventDetails?.country) {
+                locationParts.push(event.eventDetails.country);
+            }
+            
+            // Extract from description if no direct location info
+            if (locationParts.length === 0 && event.description) {
+                // Look for location patterns in description
+                const locationPatterns = [
+                    /in\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
+                    /at\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g,
+                    /([A-Z][a-z]+,\s*[A-Z]{2})/g, // City, State
+                    /([A-Z][a-z]+,\s*[A-Z][a-z]+)/g, // City, Country
+                ];
+                
+                for (const pattern of locationPatterns) {
+                    const match = event.description.match(pattern);
+                    if (match) {
+                        locationParts.push(match[1] || match[0]);
+                        break;
+                    }
+                }
+            }
+            
+            return locationParts.length > 0 ? locationParts.join(', ') : undefined;
+        })(),
+        venue: (() => {
+            // Extract venue information
+            if (event.venue?.name) return event.venue.name;
+            if (event.venue) return event.venue;
+            if (event.eventDetails?.venue) return event.eventDetails.venue;
+            if (event.location) return event.location;
+            return undefined;
+        })(),
+        images: event.metadata?.thumbnail ? [{ url: event.metadata.thumbnail, ratio: '16_9' }] : 
+                event.metadata?.imageInfo?.thumbnail ? [{ url: event.metadata.imageInfo.thumbnail, ratio: '16_9' }] :
+                event.images ? [{ url: event.images, ratio: '16_9' }] : 
+                
+                [{ url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=225&fit=crop&crop=center', ratio: '16_9' }],
+        
+        
+        eventDetails: event.eventDetails || null
+    };
 }
 
 function convertTicketmasterEvent(event: any, index: number): EventResult {
@@ -52,14 +309,28 @@ function convertTicketmasterEvent(event: any, index: number): EventResult {
         name: event.name || 'Untitled Event',
         mainUrl: formatUrl(event.url, `https://www.ticketmaster.com/event/${event.id}`),
         applicationUrl: event.url || undefined, 
-        contact: event.venue?.name ? `Venue: ${event.venue.name}` : undefined,
+        contact: event._embedded?.venues?.[0]?.name ? `Venue: ${event._embedded.venues[0].name}` : 
+                 event.venue?.name ? `Venue: ${event.venue.name}` : 
+                 event._embedded?.attractions?.[0]?.name ? `Organizer: ${event._embedded.attractions[0].name}` : 
+                 event.organizer ? `Organizer: ${event.organizer}` : undefined,
         organizer: event.organizer || event._embedded?.attractions?.[0]?.name || 'Unknown Organizer',
         verifiedApplyLink: false, 
         description: event.description || event.info || undefined,
         date: startDate,
         startDate: startDate,
         endDate: endDate,
-        location: event._embedded?.venues?.[0]?.city?.name || event._embedded?.venues?.[0]?.name || undefined,
+        location: (() => {
+            const venue = event._embedded?.venues?.[0];
+            if (venue) {
+                const parts = [];
+                if (venue.name) parts.push(venue.name);
+                if (venue.city?.name) parts.push(venue.city.name);
+                if (venue.state?.name) parts.push(venue.state.name);
+                if (venue.country?.name) parts.push(venue.country.name);
+                return parts.join(', ');
+            }
+            return event._embedded?.venues?.[0]?.city?.name || event._embedded?.venues?.[0]?.name || undefined;
+        })(),
         venue: event._embedded?.venues?.[0]?.name || undefined,
         images: event.images ? event.images.map((img: any) => ({
             url: img.url,
@@ -83,15 +354,30 @@ function convertEventbriteEvent(event: any, index: number): EventResult {
         name: event.title || event.name || 'Untitled Event',
         mainUrl: formatUrl(event.eventUrl || event.url, `https://www.eventbrite.com/e/${event.id}`),
         applicationUrl: event.eventUrl || event.url || undefined,
-        contact: event.organizer?.name ? `Organizer: ${event.organizer.name}` : undefined,
+        contact: event.organizer?.email ? `Email: ${event.organizer.email}` : 
+                 event.organizer?.name ? `Organizer: ${event.organizer.name}` : 
+                 event.contact_email ? `Email: ${event.contact_email}` : undefined,
         organizer: event.organizer?.name || 'Unknown Organizer',
         verifiedApplyLink: false,
         description: event.description || undefined,
         date: startDate,
         startDate: startDate,
         endDate: endDate,
-        location: event.location || event.venue || undefined,
-        venue: event.venue || undefined,
+        location: (() => {
+            const parts = [];
+            if (event.venue?.name) parts.push(event.venue.name);
+            if (event.venue?.address) parts.push(event.venue.address);
+            if (event.venue?.city) parts.push(event.venue.city);
+            if (event.venue?.state) parts.push(event.venue.state);
+            if (event.venue?.country) parts.push(event.venue.country);
+            
+            if (parts.length > 0) {
+                return parts.join(', ');
+            }
+            
+            return event.location || event.venue || undefined;
+        })(),
+        venue: event.venue?.name || event.venue || undefined,
         images: event.imageUrl ? [{
             url: event.imageUrl,
             width: undefined,
@@ -114,15 +400,26 @@ function convertCallForDataSpeakersEvent(event: any, index: number): EventResult
         name: event.title || event.name || 'Untitled Event',
         mainUrl: formatUrl(event.website || event.url, `https://callfordataspeakers.com/event/${event.id}`),
         applicationUrl: event.website || event.url || undefined,
-        contact: event.contact_email ? `Email: ${event.contact_email}` : undefined,
+        contact: event.contact_email ? `Email: ${event.contact_email}` : 
+                 event.contact_phone ? `Phone: ${event.contact_phone}` : 
+                 event.organization ? `Organization: ${event.organization}` : 
+                 event.organizer ? `Organizer: ${event.organizer}` : undefined,
         organizer: event.organization || event.organizer || 'Unknown Organizer',
         verifiedApplyLink: true, 
         description: event.description || undefined,
         date: startDate,
         startDate: startDate,
         endDate: endDate,
-        location: event.location || event.venue || undefined,
-        venue: event.location || event.venue || undefined,
+        location: (() => {
+            const parts = [];
+            if (event.venue) parts.push(event.venue);
+            if (event.location) parts.push(event.location);
+            if (event.city) parts.push(event.city);
+            if (event.country) parts.push(event.country);
+            
+            return parts.length > 0 ? parts.join(', ') : undefined;
+        })(),
+        venue: event.venue || event.location || undefined,
         images: undefined, 
     };
 }
@@ -139,15 +436,26 @@ function convertPretalxEvent(event: any, index: number): EventResult {
         name: event.title || event.pageDetails?.title || event.slug || 'Untitled Event',
         mainUrl: formatUrl(event.eventUrl, `https://pretalx.com/event/${event.slug}`),
         applicationUrl: event.eventUrl || undefined,
-        contact: event.contactEmail ? `Email: ${event.contactEmail}` : (event.pageDetails?.contactEmail ? `Email: ${event.pageDetails.contactEmail}` : undefined),
+        contact: event.contactEmail ? `Email: ${event.contactEmail}` : 
+                 event.pageDetails?.contactEmail ? `Email: ${event.pageDetails.contactEmail}` : 
+                 event.organizer ? `Organizer: ${event.organizer}` : 
+                 event.pageDetails?.organizer ? `Organizer: ${event.pageDetails.organizer}` : undefined,
         organizer: event.organizer || event.pageDetails?.organizer || 'Unknown Organizer',
         verifiedApplyLink: true, 
         description: event.description || event.pageDetails?.description || `Pretalx event: ${event.slug}`,
         date: startDate,
         startDate: startDate,
         endDate: endDate,
-        location: event.location || event.pageDetails?.location || undefined,
-        venue: event.location || event.pageDetails?.location || undefined,
+        location: (() => {
+            const parts = [];
+            if (event.pageDetails?.location) parts.push(event.pageDetails.location);
+            if (event.location) parts.push(event.location);
+            if (event.pageDetails?.city) parts.push(event.pageDetails.city);
+            if (event.pageDetails?.country) parts.push(event.pageDetails.country);
+            
+            return parts.length > 0 ? parts.join(', ') : undefined;
+        })(),
+        venue: event.pageDetails?.location || event.location || undefined,
         images: undefined, 
     };
 }
@@ -164,14 +472,31 @@ function convertOpenWebNinjaEvent(event: any, index: number): EventResult {
         name: event.name || event.title || event.event_name || 'Untitled Event',
         mainUrl: formatUrl(event.link || event.url || event.event_url || event.website, `https://openwebninja.com/event/${event.event_id || event.id}`),
         applicationUrl: event.link || event.url || event.event_url || event.website || undefined,
-        contact: event.contact_email ? `Email: ${event.contact_email}` : (event.organizer_email ? `Email: ${event.organizer_email}` : undefined),
+        contact: event.contact_email ? `Email: ${event.contact_email}` : 
+                 event.organizer_email ? `Email: ${event.organizer_email}` : 
+                 event.contact_phone ? `Phone: ${event.contact_phone}` : 
+                 event.publisher ? `Publisher: ${event.publisher}` : 
+                 event.organizer ? `Organizer: ${event.organizer}` : undefined,
         organizer: event.publisher || event.organizer || event.organizer_name || 'Unknown Organizer',
         verifiedApplyLink: true, 
         description: event.description || event.summary || `OpenWebNinja event: ${event.name || event.title}`,
         date: startDate,
         startDate: startDate,
         endDate: endDate,
-        location: event.venue?.full_address || event.venue?.city || event.location || undefined,
+        location: (() => {
+            const parts = [];
+            if (event.venue?.name) parts.push(event.venue.name);
+            if (event.venue?.full_address) parts.push(event.venue.full_address);
+            else {
+                if (event.venue?.address) parts.push(event.venue.address);
+                if (event.venue?.city) parts.push(event.venue.city);
+                if (event.venue?.state) parts.push(event.venue.state);
+                if (event.venue?.country) parts.push(event.venue.country);
+            }
+            if (event.location) parts.push(event.location);
+            
+            return parts.length > 0 ? parts.join(', ') : undefined;
+        })(),
         venue: event.venue?.name || event.venue || event.location || undefined,
         images: event.thumbnail ? [{
             url: event.thumbnail,
@@ -304,32 +629,85 @@ export async function pretalxSearch(input: SearchInput): Promise<{ top20: EventR
     }
 }
 
+async function serpApiSearch(input: SearchInput): Promise<{ top20: EventResult[]; more100: EventResult[] }> {
+    try {
+        console.log('🔍 Starting SerpAPI search with input:', input);
+        
+        const optimizedTopic = await aiSuggestionService.optimizeTopicForSerpApi(input.topic, input.industry);
+        console.log(`🤖 AI optimized topic: "${input.topic}" → "${optimizedTopic}"`);
+        
+        const response = await serpApi.searchEvents({
+            industry: input.industry,
+            topic: optimizedTopic
+        });
+        
+        console.log('📡 SerpAPI response received:', {
+            success: response?.success,
+            message: response?.message,
+            hasData: !!response?.data,
+            eventsCount: response?.data?.events?.length || 0
+        });
+        
+        if (!response) {
+            console.log('❌ SerpAPI returned null/undefined response');
+            return { top20: [], more100: [] };
+        }
+        
+        if (!response.success) {
+            console.log('❌ SerpAPI returned unsuccessful response:', response.message);
+            return { top20: [], more100: [] };
+        }
+        
+        if (!response.data || !response.data.events) {
+            console.log('❌ SerpAPI returned invalid data structure');
+            console.log('Response structure:', response);
+            return { top20: [], more100: [] };
+        }
+        
+        const events = response.data.events;
+        console.log(`📊 SerpAPI returned ${events.length} events with optimized topic`);
+        
+        
+        if (!Array.isArray(events)) {
+            console.log('❌ SerpAPI events is not an array:', typeof events);
+            return { top20: [], more100: [] };
+        }
+        
+        
+        const convertedEvents = events.map((event: any, index: number) => convertSerpApiEvent(event, index));
+        
+        
+        
+        
+        const top20 = convertedEvents.slice(0, 20); 
+        const more100 = convertedEvents.slice(20); 
+        
+        console.log(`✅ SerpAPI search completed: ${top20.length} top20 + ${more100.length} more100 events`);
+        console.log(`🔍 SerpAPI top20 sample:`, top20.slice(0, 3).map(e => ({ id: e.id, name: e.name, hasImage: !!e.images?.[0]?.url })));
+        console.log(`🔍 SerpAPI more100 sample:`, more100.slice(0, 3).map(e => ({ id: e.id, name: e.name, hasImage: !!e.images?.[0]?.url })));
+        console.log(`🖼️ Events with images: ${convertedEvents.filter(e => e.images?.[0]?.url).length}/${convertedEvents.length}`);
+        return { top20, more100 };
+        
+    } catch (error) {
+        console.error('❌ SerpAPI search failed:', error);
+        return { top20: [], more100: [] };
+    }
+}
+
 export async function openWebNinjaSearch(input: SearchInput): Promise<{ top20: EventResult[]; more100: EventResult[] }> {
     try {
         console.log('🔍 Starting OpenWebNinja search with input:', input);
         
-        const response = await searchApi.ninjaSearch(input.topic, input.industry);
-        console.log('📡 OpenWebNinja API response:', response);
+        const result = await searchApi.ninjaSearch(input.topic, input.industry);
+        console.log('📡 OpenWebNinja API response:', result);
         
-        // The backend returns the raw OpenWebNinja API response with optimization metadata
-        // We need to extract the events from the response
-        const rawEvents = response.data || [];
-        console.log(`📊 Found ${rawEvents.length} events from OpenWebNinja`);
-        
-        if (rawEvents.length === 0) {
-            console.log('📊 No events found from OpenWebNinja, returning empty results');
+        if (!result || !result.top20 || !result.more100) {
+            console.log('❌ OpenWebNinja returned invalid result structure');
             return { top20: [], more100: [] };
         }
         
-        // Convert OpenWebNinja events to our standard format
-        const convertedEvents = rawEvents.map((event: any, index: number) => 
-            convertOpenWebNinjaEvent(event, index)
-        );
-        
-        const top20 = convertedEvents.slice(0, 20);
-        const more100 = convertedEvents.slice(20, 120);
-        console.log(`✅ Returning ${top20.length} top20 events and ${more100.length} more100 events`);
-        return { top20, more100 };
+        console.log(`✅ OpenWebNinja search completed: ${result.top20.length} top20, ${result.more100.length} more100`);
+        return result;
     } catch (error) {
         console.error('❌ OpenWebNinja search error:', error);
         console.log('🔄 Returning empty results due to error...');
@@ -470,13 +848,14 @@ function filterExpiredEvents(events: EventResult[]): EventResult[] {
 
 export async function combinedSearch(input: SearchInput): Promise<{ top20: EventResult[]; more100: EventResult[] }> {
     try {
-        console.log('🚀 Starting combined search (Ticketmaster + Eventbrite + Call for Data Speakers + Pretalx + OpenWebNinja) with input:', input);
+        console.log('🚀 Starting combined search (Ticketmaster + Eventbrite + Call for Data Speakers + Pretalx + SerpAPI + OpenWebNinja) with input:', input);
         
-        const [ticketmasterResult, eventbriteResult, callForDataSpeakersResult, pretalxResult, openWebNinjaResult] = await Promise.allSettled([
+        const [ticketmasterResult, eventbriteResult, callForDataSpeakersResult, pretalxResult, serpApiResult, openWebNinjaResult] = await Promise.allSettled([
             ticketmasterSearch(input),
             eventbriteSearch(input),
             callForDataSpeakersSearch(input),
             pretalxSearch(input),
+            serpApiSearch(input),
             openWebNinjaSearch(input)
         ]);
         
@@ -523,7 +902,17 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
             console.error('❌ Pretalx search failed:', pretalxResult.reason);
         }
         
-        // OpenWebNinja results
+        
+        if (serpApiResult.status === 'fulfilled') {
+            const serpSearchResult = serpApiResult.value;
+            combinedTop20 = [...combinedTop20, ...serpSearchResult.top20];
+            combinedMore100 = [...combinedMore100, ...serpSearchResult.more100];
+            console.log(`✅ Added ${serpSearchResult.top20.length} SerpAPI top20 events (immediately visible) and ${serpSearchResult.more100.length} SerpAPI more100 events (21st onwards)`);
+        } else {
+            console.error('❌ SerpAPI search failed:', serpApiResult.reason);
+        }
+        
+        
         if (openWebNinjaResult.status === 'fulfilled') {
             const ownResult = openWebNinjaResult.value;
             combinedTop20 = [...combinedTop20, ...ownResult.top20];

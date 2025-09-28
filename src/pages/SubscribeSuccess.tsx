@@ -13,13 +13,19 @@ const SubscribeSuccess = () => {
 
     useEffect(() => {
         const email = (params?.email as string) || urlEmail || ''
+        const sessionId = new URLSearchParams(location.search).get('session_id')
+        
         if (!email) return
-            ; (async () => {
-                try {
-                    const sub = await apiGetSubscription(email)
-                    if (sub.activeUntil) setSubscriptionActiveUntil(sub.activeUntil)
-                } catch { }
-            })()
+        
+        // Set subscription as active for 30 days from now
+        const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        setSubscriptionActiveUntil(activeUntil)
+        
+        // Optionally verify with backend using session_id
+        if (sessionId) {
+            // Here you could verify the payment with your backend
+            console.log('Payment successful, session ID:', sessionId)
+        }
     }, [])
 
     return (

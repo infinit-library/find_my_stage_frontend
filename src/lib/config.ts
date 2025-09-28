@@ -1,13 +1,12 @@
-// Debug environment variables
+
 console.log('Environment variables:', {
   VITE_GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
   VITE_GOOGLE_CLIENT_SECRET: import.meta.env.VITE_GOOGLE_CLIENT_SECRET,
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
 });
 
-// Application Configuration
 export const config = {
-  // Google OAuth Configuration
+
   google: {
     clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
     clientSecret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '',
@@ -16,7 +15,7 @@ export const config = {
     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest'],
   },
   
-  // API Configuration
+
   api: {
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     endpoints: {
@@ -34,7 +33,7 @@ export const config = {
     },
   },
   
-  // App Configuration
+
   app: {
     name: 'Find My Stage',
     version: '1.0.0',
@@ -42,7 +41,7 @@ export const config = {
     authRedirect: '/auth',
   },
   
-  // Storage Keys
+
   storage: {
     accessToken: 'fms_access_token',
     refreshToken: 'fms_refresh_token',
@@ -51,7 +50,6 @@ export const config = {
   },
 };
 
-// Validate required environment variables
 export const validateConfig = () => {
   const required = [
     'VITE_GOOGLE_CLIENT_ID',

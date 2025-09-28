@@ -98,8 +98,19 @@ export const searchApi = {
     const response = await apiClient.post('/api/search', input);
     return response.data;
   },
-  ninjaSearch: async (topic: string, industry: string): Promise<any> => {
+  ninjaSearch: async (topic: string, industry: string): Promise<{ top20: EventResult[]; more100: EventResult[] }> => {
     const response = await apiClient.post('/openwebninja/getdata', { topic, industry });
+    return response.data;
+  },
+};
+
+export const serpApi = {
+  searchEvents: async (params: {
+    q?: string;
+    industry?: string;
+    topic?: string;
+  }): Promise<{ success: boolean; message: string; data: { events: any[]; [key: string]: any } }> => {
+    const response = await apiClient.post('/serpapi/getserpapidata', params);
     return response.data;
   },
 };
@@ -227,9 +238,26 @@ export const pretalxApi = {
 };
 
 export const paymentApi = {
-  createCheckout: async (email: string): Promise<{ url: string; id?: string }> => {
-    const response = await apiClient.post('/api/checkout', { email });
-    return response.data;
+  createCheckout: async (email: string, searchParams?: { topic?: string; industry?: string }): Promise<{ url: string; id?: string }> => {
+    try {
+      console.log('API call to create checkout session:', { 
+        email, 
+        topic: searchParams?.topic, 
+        industry: searchParams?.industry 
+      });
+      
+      const response = await apiClient.post('/stripe/create-checkout-session', { 
+        email,
+        topic: searchParams?.topic,
+        industry: searchParams?.industry
+      });
+      
+      console.log('API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API error creating checkout session:', error);
+      throw error;
+    }
   },
   getSubscription: async (email: string): Promise<{ activeUntil: string | null }> => {
     const response = await apiClient.get(`/api/subscription/${encodeURIComponent(email)}`);
@@ -237,6 +265,10 @@ export const paymentApi = {
   },
   createTerminalConnectionToken: async (): Promise<{ secret: string }> => {
     const response = await apiClient.post('/api/terminal/connection_token');
+    return response.data;
+  },
+  createPaymentIntent: async (amount: number, currency: string = 'usd'): Promise<{ clientSecret: string }> => {
+    const response = await apiClient.post('/stripe/create-payment-intent', { amount, currency });
     return response.data;
   },
 };
@@ -251,6 +283,9 @@ export async function apiGetSubscription(email: string): Promise<{ activeUntil: 
 }
 export async function apiCreateTerminalConnectionToken(): Promise<{ secret: string }> {
   return paymentApi.createTerminalConnectionToken();
+}
+export async function apiCreatePaymentIntent(amount: number, currency: string = 'usd'): Promise<{ clientSecret: string }> {
+  return paymentApi.createPaymentIntent(amount, currency);
 }
 export async function ninjaSearch(topic: string, industry: string): Promise<{ top20: EventResult[]; more100: EventResult[] }> {
   return searchApi.ninjaSearch(topic, industry);

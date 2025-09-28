@@ -204,7 +204,7 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                       <div className="flex-1">
                         <p className="font-medium text-sm text-muted-foreground">Location</p>
                         <p className="text-foreground">
-                          {event.location || event.venue || event.contact || "Venue: TBD"}
+                          {event.location || event.venue || "Location TBD"}
                         </p>
                       </div>
                     </div>
@@ -217,17 +217,23 @@ export const EventDetailsModal = ({ event, isOpen, onClose }: EventDetailsModalP
                       </div>
                     </div>
 
-                    {event.contact && event.contact.startsWith('mailto:') && (
+                    {event.contact && (
                       <div className="flex items-start gap-3">
                         <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
                         <div>
-                          <p className="font-medium text-sm text-muted-foreground">Contact</p>
-                          <a
-                            href={event.contact}
-                            className="text-primary hover:underline"
-                          >
-                            {event.contact.replace('mailto:', '')}
-                          </a>
+                          <p className="font-medium text-sm text-muted-foreground">Contact Information</p>
+                          <p className="text-foreground">
+                            {event.contact.startsWith('mailto:') ? (
+                              <a
+                                href={event.contact}
+                                className="text-primary hover:underline"
+                              >
+                                {event.contact.replace('mailto:', '')}
+                              </a>
+                            ) : (
+                              event.contact
+                            )}
+                          </p>
                         </div>
                       </div>
                     )}

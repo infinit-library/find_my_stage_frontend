@@ -1,6 +1,4 @@
 import { config } from './config';
-
-// Interfaces for Google OAuth
 export interface GoogleUser {
   id: string;
   email: string;
@@ -50,7 +48,6 @@ class GoogleAuthEnhanced {
   private listeners: ((state: GoogleAuthState) => void)[] = [];
 
   constructor() {
-    // Initialize from localStorage if available
     this.loadFromStorage();
   }
 
@@ -77,10 +74,8 @@ class GoogleAuthEnhanced {
       const state = this.generateState();
       const authUrl = this.buildAuthUrl(state);
       
-      // Store state for verification
       localStorage.setItem(config.storage.googleState, state);
       
-      // Redirect to Google OAuth
       window.location.href = authUrl;
     } catch (error) {
       this.updateState({ 
@@ -121,26 +116,20 @@ class GoogleAuthEnhanced {
     try {
       this.updateState({ isLoading: true, error: null });
 
-      // Verify state parameter
       const storedState = localStorage.getItem(config.storage.googleState);
       if (!storedState || storedState !== state) {
         throw new Error('Invalid state parameter');
       }
 
-      // Exchange code for tokens
       const tokens = await this.exchangeCodeForTokens(code);
       
-      // Get user info from Google
       const user = await this.getUserInfo(tokens.access_token);
       
-      // Authenticate with backend
       const authResponse = await this.authenticateWithBackend(user, tokens);
       
-      // Store tokens and user data
       this.storeTokens(tokens);
       this.storeUser(user);
       
-      // Update state
       this.updateState({
         isAuthenticated: true,
         isLoading: false,
@@ -149,7 +138,6 @@ class GoogleAuthEnhanced {
         error: null
       });
 
-      // Clear stored state
       localStorage.removeItem(config.storage.googleState);
       
       return authResponse;
@@ -220,7 +208,6 @@ class GoogleAuthEnhanced {
 
     const authResponse = await response.json();
     
-    // Store the JWT token from backend
     if (authResponse.token) {
       localStorage.setItem(config.storage.accessToken, authResponse.token);
     }
@@ -241,16 +228,13 @@ class GoogleAuthEnhanced {
 
   public async signOut(): Promise<void> {
     try {
-      // Revoke Google tokens if available
       const accessToken = this.getAccessToken();
       if (accessToken) {
         await this.revokeGoogleTokens(accessToken);
       }
 
-      // Clear storage
       this.clearStorage();
       
-      // Update state
       this.updateState({
         isAuthenticated: false,
         isLoading: false,
@@ -260,7 +244,6 @@ class GoogleAuthEnhanced {
       });
     } catch (error) {
       console.error('Sign out error:', error);
-      // Still clear local state even if Google revocation fails
       this.clearStorage();
       this.updateState({
         isAuthenticated: false,

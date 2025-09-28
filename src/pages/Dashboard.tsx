@@ -24,8 +24,6 @@ const Dashboard = () => {
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterType, setFilterType] = useState("all");
 
-  // Mock data for speaking opportunities
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}

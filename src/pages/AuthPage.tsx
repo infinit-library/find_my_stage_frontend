@@ -15,18 +15,18 @@ import { authApi, type LoginRequest, type SignupRequest, type SignupResponse } f
 
 const decodeJwtCredential = (credential: string) => {
   try {
-    
+
     const parts = credential.split('.');
     if (parts.length !== 3) {
       throw new Error('Invalid JWT format');
     }
-    
-    
+
+
     const payload = parts[1];
-    
+
     const paddedPayload = payload + '='.repeat((4 - payload.length % 4) % 4);
     const decodedPayload = atob(paddedPayload);
-    
+
     return JSON.parse(decodedPayload);
   } catch (error) {
     console.error('Error decoding JWT:', error);
@@ -56,7 +56,7 @@ const AuthPage = () => {
     agreeToTerms: false
   });
   const [activeTab, setActiveTab] = useState(prefilledEmail ? "signup" : "login");
-  
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -84,7 +84,7 @@ const AuthPage = () => {
         given_name: userInfo.given_name,
         family_name: userInfo.family_name,
         picture: userInfo.picture,
-        sub: userInfo.sub, 
+        sub: userInfo.sub,
         email_verified: userInfo.email_verified
       });
 
@@ -171,16 +171,16 @@ const AuthPage = () => {
       };
       const data = await authApi.signup(userData);
       toast.success('Account created successfully! Please sign in to continue.');
-      // Clear the signup form
+
       setSignupData({
         firstName: "",
         lastName: "",
-        email: signupData.email, // Keep the email for convenience
+        email: signupData.email,
         password: "",
         confirmPassword: "",
         agreeToTerms: false
       });
-      // Switch to sign-in tab and populate email
+
       setLoginData(prev => ({ ...prev, email: signupData.email }));
       setActiveTab("login");
     } catch (error: any) {

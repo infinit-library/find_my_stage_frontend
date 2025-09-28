@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Brain, Search, CheckCircle, AlertCircle, Mic, Bell, Settings, User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ninjaSearch } from "@/lib/api";
+
 const SearchPage = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -46,8 +47,7 @@ const SearchPage = () => {
       setIsSearching(true);
 
       // Add a small delay to show the loading state
-      const results = await ninjaSearch(topic, industry);
-      console.log(results);
+      // Note: SerpAPI is now integrated into the combined search on the results page
       // Pass the actual values instead of mapping to "Other"
     } catch (e) { console.error(e) }
     finally {
