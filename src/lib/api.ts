@@ -3,7 +3,8 @@ import type { SearchInput, EventResult } from './search';
 import { config } from './config';
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api/',
+  // baseURL: 'http://localhost:5000/api/',
+  baseURL: 'https://find-my-stage-backend.vercel.app/api/',
   headers: {
     'Content-Type': 'application/json',
   },
