@@ -17,6 +17,7 @@ import ResultsPage from "./pages/ResultsPage";
 import Subscribe from "./pages/Subscribe";
 import SubscribeSuccess from "./pages/SubscribeSuccess";
 import SubscribeCancel from "./pages/SubscribeCancel";
+import FavoritesPage from "./pages/FavoritesPage";
 import OAuthCallback from "./pages/OAuthCallback";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/subscribe" element={<Subscribe />} />
               <Route path="/subscribe/success" element={<SubscribeSuccess />} />
               <Route path="/subscribe/cancel" element={<SubscribeCancel />} />
+              <Route path="/favorites" element={<FavoritesPage />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Dashboard />

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SearchLoading } from "@/components/ui/search-loading";
 import { ResultsSkeleton } from "@/components/ui/results-skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Calendar, Building, User, ExternalLink, ArrowLeft, MapPin, Mail } from "lucide-react";
+import { Calendar, Building, User, ExternalLink, ArrowLeft, MapPin, Mail, Heart } from "lucide-react";
 import type { EventResult } from "@/lib/search";
 import { combinedSearch } from "@/lib/search";
 import { isSubscribed } from "@/lib/subscription";
@@ -52,6 +52,68 @@ const ResultsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(false);
   const [searchCompleted, setSearchCompleted] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+
+  // Load favorites from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedFavorites = localStorage.getItem('eventFavorites');
+      if (savedFavorites) {
+        setFavorites(new Set(JSON.parse(savedFavorites)));
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  }, []);
+
+  // Save favorites to localStorage whenever favorites change
+  useEffect(() => {
+    try {
+      localStorage.setItem('eventFavorites', JSON.stringify(Array.from(favorites)));
+    } catch (error) {
+      console.error('Error saving favorites:', error);
+    }
+  }, [favorites]);
+
+  // Toggle favorite status
+  const toggleFavorite = (eventId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(eventId)) {
+        newFavorites.delete(eventId);
+        // Remove from localStorage
+        try {
+          const savedEvents = localStorage.getItem('favoriteEvents');
+          if (savedEvents) {
+            const events = JSON.parse(savedEvents);
+            const updatedEvents = events.filter((event: EventResult) => event.id !== eventId);
+            localStorage.setItem('favoriteEvents', JSON.stringify(updatedEvents));
+          }
+        } catch (error) {
+          console.error('Error removing from favorites:', error);
+        }
+      } else {
+        newFavorites.add(eventId);
+        // Add to localStorage
+        try {
+          const allEvents = [...top20, ...more100];
+          const eventToAdd = allEvents.find(event => event.id === eventId);
+          if (eventToAdd) {
+            const savedEvents = localStorage.getItem('favoriteEvents');
+            const events = savedEvents ? JSON.parse(savedEvents) : [];
+            const exists = events.some((event: EventResult) => event.id === eventId);
+            if (!exists) {
+              events.push(eventToAdd);
+              localStorage.setItem('favoriteEvents', JSON.stringify(events));
+            }
+          }
+        } catch (error) {
+          console.error('Error adding to favorites:', error);
+        }
+      }
+      return newFavorites;
+    });
+  };
 
   // Handle URL parameters and payment success
   useEffect(() => {
@@ -172,14 +234,23 @@ const ResultsPage = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
-          <Button
-            variant="outline"
-            onClick={() => navigate("/search")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Search
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/search")}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Search
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => navigate("/favorites")}
+              className="flex items-center gap-2"
+            >
+              <Heart className="w-4 h-4" />
+              My Favorites ({favorites.size})
+            </Button>
         </div>
 
         {/* Main Content Layout */}
@@ -278,6 +349,24 @@ const ResultsPage = () => {
                       Contact Available
                     </div>
                   )}
+                  
+                  {/* Favorite Heart Icon */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(ev.id);
+                    }}
+                    className="absolute top-2 left-2 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
+                    aria-label={favorites.has(ev.id) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart 
+                      className={`w-4 h-4 transition-colors ${
+                        favorites.has(ev.id) 
+                          ? 'fill-red-500 text-red-500' 
+                          : 'text-gray-600 hover:text-red-500'
+                      }`} 
+                    />
+                  </button>
                 </div>
 
                 <CardContent className="p-4 flex flex-col flex-grow">
@@ -435,6 +524,24 @@ const ResultsPage = () => {
                             Contact Available
                           </div>
                         )}
+                        
+                        {/* Favorite Heart Icon */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(ev.id);
+                          }}
+                          className="absolute top-2 left-2 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
+                          aria-label={favorites.has(ev.id) ? "Remove from favorites" : "Add to favorites"}
+                        >
+                          <Heart 
+                            className={`w-4 h-4 transition-colors ${
+                              favorites.has(ev.id) 
+                                ? 'fill-red-500 text-red-500' 
+                                : 'text-gray-600 hover:text-red-500'
+                            }`} 
+                          />
+                        </button>
                       </div>
 
                       <CardContent className="p-4 flex flex-col flex-grow">
