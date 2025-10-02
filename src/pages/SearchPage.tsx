@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import IndustrySelector from "@/components/ui/industry-selector";
 import TopicAIInput from "@/components/ui/topic-ai-input";
-// Removed old taxonomy imports - now using actual values
 import { toast } from "sonner";
 import { Brain, Search, CheckCircle, AlertCircle, Mic, Bell, Settings, User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +21,7 @@ const SearchPage = () => {
     try {
       e.preventDefault();
 
-      // Validate required fields
+
       if (!industry) {
         toast.error("Please select an industry.");
         return;
@@ -38,7 +37,7 @@ const SearchPage = () => {
         return;
       }
 
-      // Check if topic is still loading
+
       if (topicValidation === 'loading') {
         toast.error("Please wait for AI suggestions to finish loading.");
         return;
@@ -46,9 +45,6 @@ const SearchPage = () => {
 
       setIsSearching(true);
 
-      // Add a small delay to show the loading state
-      // Note: SerpAPI is now integrated into the combined search on the results page
-      // Pass the actual values instead of mapping to "Other"
     } catch (e) { console.error(e) }
     finally {
       setIsSearching(false);
@@ -58,7 +54,6 @@ const SearchPage = () => {
 
   return (
     <div className="h-screen bg-background overflow-hidden flex flex-col">
-      {/* Navigation Header */}
       <nav className="flex items-center justify-between p-6 border-b bg-card flex-shrink-0">
         <div className="flex items-center gap-2">
           <Mic className="h-8 w-8 text-primary" />
@@ -86,7 +81,6 @@ const SearchPage = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="flex items-center justify-center flex-1 p-6 overflow-hidden">
         <div className="w-full max-w-2xl">
           <Card className="shadow-card">
@@ -101,14 +95,12 @@ const SearchPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Industry Selection */}
                 <IndustrySelector
                   value={industry}
                   onChange={setIndustry}
                   placeholder="Search and select your industry..."
                 />
 
-                {/* Topic AI Input */}
                 <TopicAIInput
                   value={topic}
                   onChange={setTopic}
@@ -116,7 +108,6 @@ const SearchPage = () => {
                   placeholder="Type your speaking topic or describe what you want to speak about..."
                   onValidationChange={setTopicValidation}
                 />
-                {/* Submit Button */}
                 <div className="pt-4">
                   <Button
                     type="submit"
@@ -148,7 +139,6 @@ const SearchPage = () => {
                   </Button>
                 </div>
 
-                {/* Validation Messages */}
                 <div className="space-y-2">
                   {topicValidation === 'different' && (
                     <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
@@ -185,4 +175,3 @@ const SearchPage = () => {
 };
 
 export default SearchPage;
-

@@ -54,7 +54,7 @@ const ResultsPage = () => {
   const [searchCompleted, setSearchCompleted] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  // Load favorites from localStorage on component mount
+  
   useEffect(() => {
     try {
       const savedFavorites = localStorage.getItem('eventFavorites');
@@ -66,7 +66,7 @@ const ResultsPage = () => {
     }
   }, []);
 
-  // Save favorites to localStorage whenever favorites change
+  
   useEffect(() => {
     try {
       localStorage.setItem('eventFavorites', JSON.stringify(Array.from(favorites)));
@@ -75,13 +75,13 @@ const ResultsPage = () => {
     }
   }, [favorites]);
 
-  // Toggle favorite status
+  
   const toggleFavorite = (eventId: string) => {
     setFavorites(prev => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(eventId)) {
         newFavorites.delete(eventId);
-        // Remove from localStorage
+        
         try {
           const savedEvents = localStorage.getItem('favoriteEvents');
           if (savedEvents) {
@@ -94,7 +94,7 @@ const ResultsPage = () => {
         }
       } else {
         newFavorites.add(eventId);
-        // Add to localStorage
+        
         try {
           const allEvents = [...top20, ...more100];
           const eventToAdd = allEvents.find(event => event.id === eventId);
@@ -115,7 +115,7 @@ const ResultsPage = () => {
     });
   };
 
-  // Handle URL parameters and payment success
+  
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const topic = urlParams.get('topic') || params.topic;
@@ -127,7 +127,7 @@ const ResultsPage = () => {
       return;
     }
 
-    // If payment was successful, activate subscription
+    
     if (paymentSuccess) {
       const activeUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       localStorage.setItem('subscriptionActiveUntil', activeUntil);
@@ -225,7 +225,7 @@ const ResultsPage = () => {
     return <ResultsSkeleton />;
   }
 
-  // Show empty state if no events found
+  
   if (!loading && !showSkeleton && top20.length === 0 && more100.length === 0) {
     return <EmptyResults industry={params.industry} topic={params.topic} />;
   }
@@ -289,7 +289,7 @@ const ResultsPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
           {top20
             .sort((a, b) => {
-              // Sort events with contact information to the top
+              
               const aHasContact = !!(a.contact && a.contact !== 'Contact TBD' && a.contact !== 'Contact: See event details');
               const bHasContact = !!(b.contact && b.contact !== 'Contact TBD' && b.contact !== 'Contact: See event details');
               
@@ -401,12 +401,12 @@ const ResultsPage = () => {
                       <MapPin className="w-4 h-4" />
                       <span className="line-clamp-1">
                         {(() => {
-                          // Check if it's a virtual event
+                          
                           if (ev.eventDetails?.isVirtual) {
                             return '🌐 Virtual Event';
                           }
                           
-                          // Build location string from available fields
+                          
                           const locationParts = [];
                           
                           if (ev.eventDetails?.address) {
@@ -463,7 +463,7 @@ const ResultsPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6 justify-items-center">
                 {displayedMore
                   .sort((a, b) => {
-                    // Sort events with contact information to the top
+                    
                     const aHasContact = !!(a.contact && a.contact !== 'Contact TBD' && a.contact !== 'Contact: See event details');
                     const bHasContact = !!(b.contact && b.contact !== 'Contact TBD' && b.contact !== 'Contact: See event details');
                     

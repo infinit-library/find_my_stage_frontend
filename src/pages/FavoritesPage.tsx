@@ -30,7 +30,7 @@ const FavoritesPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Load favorites from localStorage
+  
   useEffect(() => {
     try {
       const savedFavorites = localStorage.getItem('eventFavorites');
@@ -48,13 +48,13 @@ const FavoritesPage = () => {
     }
   }, []);
 
-  // Toggle favorite status
+  
   const toggleFavorite = (eventId: string) => {
     setFavorites(prev => {
       const newFavorites = new Set(prev);
       if (newFavorites.has(eventId)) {
         newFavorites.delete(eventId);
-        // Remove from localStorage
+        
         try {
           const updatedEvents = favoriteEvents.filter(event => event.id !== eventId);
           setFavoriteEvents(updatedEvents);
@@ -228,12 +228,12 @@ const FavoritesPage = () => {
                       <MapPin className="w-4 h-4" />
                       <span className="line-clamp-1">
                         {(() => {
-                          // Check if it's a virtual event
+                          
                           if (ev.eventDetails?.isVirtual) {
                             return '🌐 Virtual Event';
                           }
                           
-                          // Build location string from available fields
+                          
                           const locationParts = [];
                           
                           if (ev.eventDetails?.address) {
@@ -288,3 +288,5 @@ const FavoritesPage = () => {
 };
 
 export default FavoritesPage;
+
+

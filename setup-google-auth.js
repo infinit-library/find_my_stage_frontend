@@ -1,10 +1,3 @@
-#!/usr/bin/env node
-
-/**
- * Google OAuth Setup Script for Find My Stage
- * This script helps you set up your environment variables quickly
- */
-
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -14,10 +7,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-console.log('🚀 Google OAuth Setup for Find My Stage');
-console.log('=====================================\n');
 
-// Check if .env file already exists
 const envPath = path.join(__dirname, '.env');
 const envExists = fs.existsSync(envPath);
 
