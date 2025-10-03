@@ -41,7 +41,7 @@ const LandingPage = () => {
     <div className="min-h-screen bg-background">
       <nav className="flex items-center justify-between p-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
-          <img src="../public/FMS Logo line.png" alt="Find My Stage" className="h-20 w-auto" />
+          <img src="/FMS Logo line.png" alt="Find My Stage" className="h-20 w-auto" />
         </div>
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={handleAuthAction}>
