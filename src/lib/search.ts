@@ -818,7 +818,6 @@ export async function mockSearch(input: SearchInput): Promise<{ top20: EventResu
 }
 
 function isEventExpired(event: EventResult): boolean {
-    return;
     if (!event.startDate && !event.date) {
         return false; 
     }
