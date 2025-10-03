@@ -1080,53 +1080,83 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
         const rankEvent = (event: EventResult): number => {
             let priority = 0;
             
-            // Priority 1: Call for speakers events (highest priority)
-            if (event.verifiedApplyLink || 
-                event.name.toLowerCase().includes('call for') ||
-                event.name.toLowerCase().includes('cfp') ||
-                event.name.toLowerCase().includes('speaker') ||
-                event.description?.toLowerCase().includes('call for') ||
-                event.description?.toLowerCase().includes('cfp') ||
-                event.description?.toLowerCase().includes('speaker')) {
-                priority += 1000;
-            }
-            
-            // Priority 2: Events 3+ months in advance
+            // Check if event is 3+ months in advance (REQUIREMENT)
             const eventDate = new Date(event.startDate || event.date || '');
             const now = new Date();
             const monthsUntilEvent = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
             
-            if (monthsUntilEvent >= 3) {
-                priority += 500;
-            } else if (monthsUntilEvent >= 1) {
-                priority += 200;
-            } else if (monthsUntilEvent >= 0) {
-                priority += 100;
+            // Only rank events that are 3+ months in advance
+            if (monthsUntilEvent < 3) {
+                return -1000; // Heavily penalize events less than 3 months away
             }
-            // Past events get no priority boost
+            
+            // Priority 1: Call for speakers or sponsorship events (highest priority)
+            const eventText = `${event.name} ${event.description || ''}`.toLowerCase();
+            const isCallForSpeakers = eventText.includes('call for speakers') || 
+                                    eventText.includes('call for papers') ||
+                                    eventText.includes('cfp') ||
+                                    eventText.includes('speaker submission') ||
+                                    eventText.includes('speaker application') ||
+                                    eventText.includes('speaking opportunity') ||
+                                    event.verifiedApplyLink;
+                                    
+            const isSponsorship = eventText.includes('sponsorship') ||
+                                eventText.includes('sponsor') ||
+                                eventText.includes('sponsor opportunity') ||
+                                eventText.includes('sponsor application');
+            
+            if (isCallForSpeakers || isSponsorship) {
+                priority += 1000;
+            } else {
+                return -500; // Heavily penalize events without call for speakers/sponsorship
+            }
+            
+            // Priority 2: Events with direct website links (not aggregators)
+            if (event.mainUrl && 
+                !event.mainUrl.includes('eventbrite.com') &&
+                !event.mainUrl.includes('ticketmaster.com') &&
+                !event.mainUrl.includes('pretalx.com') &&
+                !event.mainUrl.includes('callfordataspeakers.com') &&
+                !event.mainUrl.includes('openwebninja.com') &&
+                event.mainUrl.startsWith('http') &&
+                event.mainUrl !== '#') {
+                priority += 500;
+            } else {
+                return -200; // Penalize aggregator links
+            }
             
             // Priority 3: Events with contact information
             if (event.contact && 
                 event.contact !== 'Contact TBD' && 
                 event.contact !== 'Contact: See event details' &&
                 event.contact.includes('@')) {
-                priority += 50;
+                priority += 200;
             }
             
-            // Priority 4: Events with direct website links (not aggregators)
-            if (event.mainUrl && 
-                !event.mainUrl.includes('eventbrite.com') &&
-                !event.mainUrl.includes('ticketmaster.com') &&
-                !event.mainUrl.includes('pretalx.com') &&
-                !event.mainUrl.includes('callfordataspeakers.com') &&
-                event.mainUrl.startsWith('http')) {
-                priority += 25;
+            // Priority 4: Further in the future gets higher priority
+            if (monthsUntilEvent >= 6) {
+                priority += 100;
+            } else if (monthsUntilEvent >= 4) {
+                priority += 50;
             }
             
             return priority;
         };
         
-        const sortedTop20 = deduplicatedTop20
+        // Filter out events that don't meet the strict requirements
+        const strictFilteredTop20 = deduplicatedTop20.filter(event => {
+            const priority = rankEvent(event);
+            return priority > 0; // Only keep events with positive priority
+        });
+        
+        const strictFilteredMore100 = deduplicatedMore100.filter(event => {
+            const priority = rankEvent(event);
+            return priority > 0; // Only keep events with positive priority
+        });
+        
+        console.log(`🎯 After strict filtering: ${strictFilteredTop20.length} top20 (was ${deduplicatedTop20.length}), ${strictFilteredMore100.length} more100 (was ${deduplicatedMore100.length})`);
+        
+        const sortedTop20 = strictFilteredTop20
             .sort((a, b) => {
                 const priorityA = rankEvent(a);
                 const priorityB = rankEvent(b);
@@ -1143,7 +1173,7 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
             })
             .slice(0, 20);
             
-        const sortedMore100 = deduplicatedMore100
+        const sortedMore100 = strictFilteredMore100
             .sort((a, b) => {
                 const priorityA = rankEvent(a);
                 const priorityB = rankEvent(b);
