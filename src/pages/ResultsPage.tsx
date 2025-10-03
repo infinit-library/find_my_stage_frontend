@@ -215,7 +215,7 @@ const ResultsPage = () => {
     return (
       <SearchLoading
         duration={5000}
-        message="Searching opportunities from Ticketmaster, Eventbrite, Call for Data Speakers, and Pretalx..."
+        message="Searching opportunities from Eventbrite, Call for Data Speakers, and Pretalx..."
         onComplete={handleLoadingComplete}
       />
     );
