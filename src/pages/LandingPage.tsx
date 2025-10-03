@@ -58,7 +58,7 @@ const LandingPage = () => {
           <div className="flex">
             <div className="ml-3">
               <p className="text-sm text-green-700">
-                <strong>Welcome back, {user.email || user.email}! 🎉</strong> You are successfully signed in. 
+                <strong>Welcome back, {user.email || user.email}!</strong> You are successfully signed in. 
                 Notice the "Sign Out" button in the top right corner.
               </p>
             </div>
@@ -70,14 +70,8 @@ const LandingPage = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="space-y-4">
-              <Badge className="bg-gradient-primary text-primary-foreground">
-                🚀 Now in Beta
-              </Badge>
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                Discover Your Next
-                <span className="bg-gradient-primary bg-clip-text text-transparent block">
-                  Speaking Stage
-                </span>
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-primary">
+                  Discover Your Next Speaking Stage
               </h1>
               <p className="text-xl text-muted-foreground leading-relaxed">
                 Connect with event organizers, showcase your expertise, and grow your speaking career.
