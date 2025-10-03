@@ -83,6 +83,39 @@ function convertSerpApiEvent(event: any, index: number): EventResult {
     const startDate = event.date || event.startDate || fallbackStartDate.toISOString();
     const endDate = event.endDate || fallbackEndDate.toISOString();
     
+    // Prioritize direct event website over aggregator links
+    const getDirectEventUrl = () => {
+        // Check for direct event website first
+        if (event.eventDetails?.website && 
+            !event.eventDetails.website.includes('eventbrite.com') &&
+            !event.eventDetails.website.includes('ticketmaster.com') &&
+            !event.eventDetails.website.includes('pretalx.com') &&
+            event.eventDetails.website.startsWith('http')) {
+            return event.eventDetails.website;
+        }
+        
+        // Check for contact website
+        if (event.contactInfo?.website && 
+            !event.contactInfo.website.includes('eventbrite.com') &&
+            !event.contactInfo.website.includes('ticketmaster.com') &&
+            !event.contactInfo.website.includes('pretalx.com') &&
+            event.contactInfo.website.startsWith('http')) {
+            return event.contactInfo.website;
+        }
+        
+        // Fall back to the main URL if it's not an aggregator
+        if (event.url && 
+            !event.url.includes('eventbrite.com') &&
+            !event.url.includes('ticketmaster.com') &&
+            !event.url.includes('pretalx.com') &&
+            event.url.startsWith('http')) {
+            return event.url;
+        }
+        
+        // Last resort: use the main URL even if it's an aggregator
+        return event.url || '#';
+    };
+    
     
     let enhancedDescription = event.description || '';
     if (event.eventDetails) {
@@ -145,8 +178,8 @@ function convertSerpApiEvent(event: any, index: number): EventResult {
     return {
         id: event.id || `serpapi_${index}`,
         name: event.title || event.name || 'Untitled Event',
-        mainUrl: formatUrl(event.url, '#'),
-        applicationUrl: event.url ? formatUrl(event.url, '#') : undefined,
+        mainUrl: formatUrl(getDirectEventUrl(), '#'),
+        applicationUrl: getDirectEventUrl() !== '#' ? formatUrl(getDirectEventUrl(), '#') : undefined,
         contact: (() => {
             // Extract contact information from multiple possible fields
             const contactInfo = [];
@@ -349,11 +382,38 @@ function convertEventbriteEvent(event: any, index: number): EventResult {
     const startDate = event.startDate || event.dateTime || fallbackStartDate.toISOString();
     const endDate = event.endDate || fallbackEndDate.toISOString();
     
+    // Try to find direct event website instead of Eventbrite link
+    const getDirectEventUrl = () => {
+        // Check for organizer website first
+        if (event.organizer?.website && 
+            !event.organizer.website.includes('eventbrite.com') &&
+            event.organizer.website.startsWith('http')) {
+            return event.organizer.website;
+        }
+        
+        // Check for venue website
+        if (event.venue?.website && 
+            !event.venue.website.includes('eventbrite.com') &&
+            event.venue.website.startsWith('http')) {
+            return event.venue.website;
+        }
+        
+        // Check for custom event URL
+        if (event.eventUrl && 
+            !event.eventUrl.includes('eventbrite.com') &&
+            event.eventUrl.startsWith('http')) {
+            return event.eventUrl;
+        }
+        
+        // Fall back to Eventbrite URL
+        return event.eventUrl || event.url || `https://www.eventbrite.com/e/${event.id}`;
+    };
+    
     return {
         id: `eb-${event.sourceId || event.id || index}`,
         name: event.title || event.name || 'Untitled Event',
-        mainUrl: formatUrl(event.eventUrl || event.url, `https://www.eventbrite.com/e/${event.id}`),
-        applicationUrl: event.eventUrl || event.url || undefined,
+        mainUrl: formatUrl(getDirectEventUrl(), `https://www.eventbrite.com/e/${event.id}`),
+        applicationUrl: getDirectEventUrl() !== `https://www.eventbrite.com/e/${event.id}` ? getDirectEventUrl() : undefined,
         contact: event.organizer?.email ? `Email: ${event.organizer.email}` : 
                  event.organizer?.name ? `Organizer: ${event.organizer.name}` : 
                  event.contact_email ? `Email: ${event.contact_email}` : undefined,
@@ -395,11 +455,31 @@ function convertCallForDataSpeakersEvent(event: any, index: number): EventResult
     const startDate = event.event_date || event.start_date || fallbackStartDate.toISOString();
     const endDate = event.end_date || fallbackEndDate.toISOString();
     
+    // Call for Data Speakers events should already have direct website links
+    const getDirectEventUrl = () => {
+        // Prioritize the website field as it should be the direct event site
+        if (event.website && 
+            !event.website.includes('callfordataspeakers.com') &&
+            event.website.startsWith('http')) {
+            return event.website;
+        }
+        
+        // Fall back to the URL field
+        if (event.url && 
+            !event.url.includes('callfordataspeakers.com') &&
+            event.url.startsWith('http')) {
+            return event.url;
+        }
+        
+        // Last resort: use the website field even if it's from callfordataspeakers.com
+        return event.website || event.url || `https://callfordataspeakers.com/event/${event.id}`;
+    };
+    
     return {
         id: `cfds-${event.id || index}`,
         name: event.title || event.name || 'Untitled Event',
-        mainUrl: formatUrl(event.website || event.url, `https://callfordataspeakers.com/event/${event.id}`),
-        applicationUrl: event.website || event.url || undefined,
+        mainUrl: formatUrl(getDirectEventUrl(), `https://callfordataspeakers.com/event/${event.id}`),
+        applicationUrl: getDirectEventUrl() !== `https://callfordataspeakers.com/event/${event.id}` ? getDirectEventUrl() : undefined,
         contact: event.contact_email ? `Email: ${event.contact_email}` : 
                  event.contact_phone ? `Phone: ${event.contact_phone}` : 
                  event.organization ? `Organization: ${event.organization}` : 
@@ -431,11 +511,31 @@ function convertPretalxEvent(event: any, index: number): EventResult {
     const startDate = event.dateTime || event.eventStartDate || event.pageDetails?.date || fallbackStartDate.toISOString();
     const endDate = event.eventEndDate || fallbackEndDate.toISOString();
     
+    // Try to find direct event website instead of Pretalx link
+    const getDirectEventUrl = () => {
+        // Check for organizer website first
+        if (event.pageDetails?.organizerWebsite && 
+            !event.pageDetails.organizerWebsite.includes('pretalx.com') &&
+            event.pageDetails.organizerWebsite.startsWith('http')) {
+            return event.pageDetails.organizerWebsite;
+        }
+        
+        // Check for custom event URL
+        if (event.eventUrl && 
+            !event.eventUrl.includes('pretalx.com') &&
+            event.eventUrl.startsWith('http')) {
+            return event.eventUrl;
+        }
+        
+        // Fall back to Pretalx URL
+        return event.eventUrl || `https://pretalx.com/event/${event.slug}`;
+    };
+    
     return {
         id: `pretalx-${event.slug || index}`,
         name: event.title || event.pageDetails?.title || event.slug || 'Untitled Event',
-        mainUrl: formatUrl(event.eventUrl, `https://pretalx.com/event/${event.slug}`),
-        applicationUrl: event.eventUrl || undefined,
+        mainUrl: formatUrl(getDirectEventUrl(), `https://pretalx.com/event/${event.slug}`),
+        applicationUrl: getDirectEventUrl() !== `https://pretalx.com/event/${event.slug}` ? getDirectEventUrl() : undefined,
         contact: event.contactEmail ? `Email: ${event.contactEmail}` : 
                  event.pageDetails?.contactEmail ? `Email: ${event.pageDetails.contactEmail}` : 
                  event.organizer ? `Organizer: ${event.organizer}` : 
@@ -467,11 +567,38 @@ function convertOpenWebNinjaEvent(event: any, index: number): EventResult {
     const startDate = event.start_time || event.start_date || event.date || event.event_date || fallbackStartDate.toISOString();
     const endDate = event.end_time || event.end_date || fallbackEndDate.toISOString();
     
+    // Try to find direct event website instead of OpenWebNinja link
+    const getDirectEventUrl = () => {
+        // Check for direct event website first
+        if (event.website && 
+            !event.website.includes('openwebninja.com') &&
+            event.website.startsWith('http')) {
+            return event.website;
+        }
+        
+        // Check for event URL
+        if (event.event_url && 
+            !event.event_url.includes('openwebninja.com') &&
+            event.event_url.startsWith('http')) {
+            return event.event_url;
+        }
+        
+        // Check for link field
+        if (event.link && 
+            !event.link.includes('openwebninja.com') &&
+            event.link.startsWith('http')) {
+            return event.link;
+        }
+        
+        // Fall back to OpenWebNinja URL
+        return event.link || event.url || event.event_url || event.website || `https://openwebninja.com/event/${event.event_id || event.id}`;
+    };
+    
     return {
         id: `own-${event.event_id || event.id || index}`,
         name: event.name || event.title || event.event_name || 'Untitled Event',
-        mainUrl: formatUrl(event.link || event.url || event.event_url || event.website, `https://openwebninja.com/event/${event.event_id || event.id}`),
-        applicationUrl: event.link || event.url || event.event_url || event.website || undefined,
+        mainUrl: formatUrl(getDirectEventUrl(), `https://openwebninja.com/event/${event.event_id || event.id}`),
+        applicationUrl: getDirectEventUrl() !== `https://openwebninja.com/event/${event.event_id || event.id}` ? getDirectEventUrl() : undefined,
         contact: event.contact_email ? `Email: ${event.contact_email}` : 
                  event.organizer_email ? `Email: ${event.organizer_email}` : 
                  event.contact_phone ? `Phone: ${event.contact_phone}` : 
@@ -949,19 +1076,87 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
         console.log(`📊 After filtering: ${deduplicatedTop20.length} top20 (was ${combinedTop20.length}), ${deduplicatedMore100.length} more100 (was ${combinedMore100.length})`);
         
         
+        // Custom ranking function based on user priorities
+        const rankEvent = (event: EventResult): number => {
+            let priority = 0;
+            
+            // Priority 1: Call for speakers events (highest priority)
+            if (event.verifiedApplyLink || 
+                event.name.toLowerCase().includes('call for') ||
+                event.name.toLowerCase().includes('cfp') ||
+                event.name.toLowerCase().includes('speaker') ||
+                event.description?.toLowerCase().includes('call for') ||
+                event.description?.toLowerCase().includes('cfp') ||
+                event.description?.toLowerCase().includes('speaker')) {
+                priority += 1000;
+            }
+            
+            // Priority 2: Events 3+ months in advance
+            const eventDate = new Date(event.startDate || event.date || '');
+            const now = new Date();
+            const monthsUntilEvent = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
+            
+            if (monthsUntilEvent >= 3) {
+                priority += 500;
+            } else if (monthsUntilEvent >= 1) {
+                priority += 200;
+            } else if (monthsUntilEvent >= 0) {
+                priority += 100;
+            }
+            // Past events get no priority boost
+            
+            // Priority 3: Events with contact information
+            if (event.contact && 
+                event.contact !== 'Contact TBD' && 
+                event.contact !== 'Contact: See event details' &&
+                event.contact.includes('@')) {
+                priority += 50;
+            }
+            
+            // Priority 4: Events with direct website links (not aggregators)
+            if (event.mainUrl && 
+                !event.mainUrl.includes('eventbrite.com') &&
+                !event.mainUrl.includes('ticketmaster.com') &&
+                !event.mainUrl.includes('pretalx.com') &&
+                !event.mainUrl.includes('callfordataspeakers.com') &&
+                event.mainUrl.startsWith('http')) {
+                priority += 25;
+            }
+            
+            return priority;
+        };
+        
         const sortedTop20 = deduplicatedTop20
             .sort((a, b) => {
+                const priorityA = rankEvent(a);
+                const priorityB = rankEvent(b);
+                
+                // First sort by priority (highest first)
+                if (priorityA !== priorityB) {
+                    return priorityB - priorityA;
+                }
+                
+                // Then by date (furthest in future first for same priority)
                 const dateA = new Date(a.startDate || a.date || '');
                 const dateB = new Date(b.startDate || b.date || '');
-                return dateA.getTime() - dateB.getTime();
+                return dateB.getTime() - dateA.getTime();
             })
             .slice(0, 20);
             
         const sortedMore100 = deduplicatedMore100
             .sort((a, b) => {
+                const priorityA = rankEvent(a);
+                const priorityB = rankEvent(b);
+                
+                // First sort by priority (highest first)
+                if (priorityA !== priorityB) {
+                    return priorityB - priorityA;
+                }
+                
+                // Then by date (furthest in future first for same priority)
                 const dateA = new Date(a.startDate || a.date || '');
                 const dateB = new Date(b.startDate || b.date || '');
-                return dateA.getTime() - dateB.getTime();
+                return dateB.getTime() - dateA.getTime();
             })
             .slice(0, 100);
         

@@ -282,22 +282,12 @@ const ResultsPage = () => {
               <p className="text-muted-foreground">Top 20 results include a verified speaker application link. Use the APPLY link on each card.</p>
               <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>✅ Expired events filtered out • Duplicates removed • Results sorted by date</span>
+                <span>✅ Call for speakers first • 3+ months advance prioritized • Direct event links preferred</span>
               </div>
             </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
-          {top20
-            .sort((a, b) => {
-              
-              const aHasContact = !!(a.contact && a.contact !== 'Contact TBD' && a.contact !== 'Contact: See event details');
-              const bHasContact = !!(b.contact && b.contact !== 'Contact TBD' && b.contact !== 'Contact: See event details');
-              
-              if (aHasContact && !bHasContact) return -1;
-              if (!aHasContact && bHasContact) return 1;
-              return 0;
-            })
-            .map((ev) => {
+          {top20.map((ev) => {
             const eventImage = getEventImage(ev);
             const hasContact = !!(ev.contact && ev.contact !== 'Contact TBD' && ev.contact !== 'Contact: See event details');
             return (
@@ -454,24 +444,14 @@ const ResultsPage = () => {
             <h2 className="text-2xl font-semibold">More opportunities</h2>
             <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>✅ All expired events filtered out • Duplicates removed • Results sorted by date</span>
+              <span>✅ Call for speakers first • 3+ months advance prioritized • Direct event links preferred</span>
             </div>
           </div>
 
           {/* {!subscribed ? ( */}
             <div className="relative border rounded-lg overflow-hidden">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6 justify-items-center">
-                {displayedMore
-                  .sort((a, b) => {
-                    
-                    const aHasContact = !!(a.contact && a.contact !== 'Contact TBD' && a.contact !== 'Contact: See event details');
-                    const bHasContact = !!(b.contact && b.contact !== 'Contact TBD' && b.contact !== 'Contact: See event details');
-                    
-                    if (aHasContact && !bHasContact) return -1;
-                    if (!aHasContact && bHasContact) return 1;
-                    return 0;
-                  })
-                  .map((ev) => {
+                {displayedMore.map((ev) => {
                   const eventImage = getEventImage(ev);
                   const hasContact = !!(ev.contact && ev.contact !== 'Contact TBD' && ev.contact !== 'Contact: See event details');
                   return (
