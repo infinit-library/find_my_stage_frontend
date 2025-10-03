@@ -278,11 +278,11 @@ const ResultsPage = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold">Call for Speakers & Sponsorship</h1>
-              <p className="text-muted-foreground">Only events 3+ months in advance with call for speakers or sponsorship opportunities. Direct links to event websites.</p>
+              <h1 className="text-3xl font-bold">Speaking Opportunities</h1>
+              <p className="text-muted-foreground">Events prioritized by call for speakers, 3+ months advance, and direct event links.</p>
               <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>✅ 3+ months advance • Call for speakers/sponsorship • Direct event links only</span>
+                <span>✅ Call for speakers first • 3+ months advance prioritized • Direct links preferred</span>
               </div>
             </div>
 
@@ -444,7 +444,7 @@ const ResultsPage = () => {
             <h2 className="text-2xl font-semibold">More opportunities</h2>
             <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>✅ 3+ months advance • Call for speakers/sponsorship • Direct event links only</span>
+              <span>✅ Call for speakers first • 3+ months advance prioritized • Direct links preferred</span>
             </div>
           </div>
 

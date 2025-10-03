@@ -1080,15 +1080,10 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
         const rankEvent = (event: EventResult): number => {
             let priority = 0;
             
-            // Check if event is 3+ months in advance (REQUIREMENT)
+            // Check event date
             const eventDate = new Date(event.startDate || event.date || '');
             const now = new Date();
             const monthsUntilEvent = (eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30);
-            
-            // Only rank events that are 3+ months in advance
-            if (monthsUntilEvent < 3) {
-                return -1000; // Heavily penalize events less than 3 months away
-            }
             
             // Priority 1: Call for speakers or sponsorship events (highest priority)
             const eventText = `${event.name} ${event.description || ''}`.toLowerCase();
@@ -1108,10 +1103,23 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
             if (isCallForSpeakers || isSponsorship) {
                 priority += 1000;
             } else {
-                return -500; // Heavily penalize events without call for speakers/sponsorship
+                // Still show events without explicit call for speakers, but with lower priority
+                priority += 100;
             }
             
-            // Priority 2: Events with direct website links (not aggregators)
+            // Priority 2: Events 3+ months in advance get highest priority
+            if (monthsUntilEvent >= 3) {
+                priority += 500;
+            } else if (monthsUntilEvent >= 1) {
+                priority += 200;
+            } else if (monthsUntilEvent >= 0) {
+                priority += 50;
+            } else {
+                // Past events get very low priority
+                priority -= 100;
+            }
+            
+            // Priority 3: Events with direct website links (not aggregators)
             if (event.mainUrl && 
                 !event.mainUrl.includes('eventbrite.com') &&
                 !event.mainUrl.includes('ticketmaster.com') &&
@@ -1120,12 +1128,13 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
                 !event.mainUrl.includes('openwebninja.com') &&
                 event.mainUrl.startsWith('http') &&
                 event.mainUrl !== '#') {
-                priority += 500;
+                priority += 300;
             } else {
-                return -200; // Penalize aggregator links
+                // Aggregator links get lower priority but still shown
+                priority += 50;
             }
             
-            // Priority 3: Events with contact information
+            // Priority 4: Events with contact information
             if (event.contact && 
                 event.contact !== 'Contact TBD' && 
                 event.contact !== 'Contact: See event details' &&
@@ -1133,7 +1142,7 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
                 priority += 200;
             }
             
-            // Priority 4: Further in the future gets higher priority
+            // Priority 5: Further in the future gets higher priority
             if (monthsUntilEvent >= 6) {
                 priority += 100;
             } else if (monthsUntilEvent >= 4) {
@@ -1143,20 +1152,24 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
             return priority;
         };
         
-        // Filter out events that don't meet the strict requirements
-        const strictFilteredTop20 = deduplicatedTop20.filter(event => {
-            const priority = rankEvent(event);
-            return priority > 0; // Only keep events with positive priority
+        // Filter out only past events (keep all future events)
+        const futureFilteredTop20 = deduplicatedTop20.filter(event => {
+            const eventDate = new Date(event.startDate || event.date || '');
+            const now = new Date();
+            const oneDayInMs = 24 * 60 * 60 * 1000;
+            return eventDate.getTime() >= (now.getTime() - oneDayInMs); // Keep events from yesterday onwards
         });
         
-        const strictFilteredMore100 = deduplicatedMore100.filter(event => {
-            const priority = rankEvent(event);
-            return priority > 0; // Only keep events with positive priority
+        const futureFilteredMore100 = deduplicatedMore100.filter(event => {
+            const eventDate = new Date(event.startDate || event.date || '');
+            const now = new Date();
+            const oneDayInMs = 24 * 60 * 60 * 1000;
+            return eventDate.getTime() >= (now.getTime() - oneDayInMs); // Keep events from yesterday onwards
         });
         
-        console.log(`🎯 After strict filtering: ${strictFilteredTop20.length} top20 (was ${deduplicatedTop20.length}), ${strictFilteredMore100.length} more100 (was ${deduplicatedMore100.length})`);
+        console.log(`🎯 After future filtering: ${futureFilteredTop20.length} top20 (was ${deduplicatedTop20.length}), ${futureFilteredMore100.length} more100 (was ${deduplicatedMore100.length})`);
         
-        const sortedTop20 = strictFilteredTop20
+        const sortedTop20 = futureFilteredTop20
             .sort((a, b) => {
                 const priorityA = rankEvent(a);
                 const priorityB = rankEvent(b);
@@ -1173,7 +1186,7 @@ export async function combinedSearch(input: SearchInput): Promise<{ top20: Event
             })
             .slice(0, 20);
             
-        const sortedMore100 = strictFilteredMore100
+        const sortedMore100 = futureFilteredMore100
             .sort((a, b) => {
                 const priorityA = rankEvent(a);
                 const priorityB = rankEvent(b);
